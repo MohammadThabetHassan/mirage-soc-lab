@@ -4,6 +4,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { requestObservability } from "./observability";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -31,9 +32,17 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.disable("x-powered-by");
+  app.use(requestObservability);
+  app.get("/healthz", (_request, response) => {
+    response.status(200).json({ status: "ok", service: "mirage-soc-lab" });
+  });
+  app.get("/readyz", (_request, response) => {
+    response.status(200).json({ status: "ready", service: "mirage-soc-lab" });
+  });
+  // Configure body parser with a bounded request limit for controlled lab imports.
+  app.use(express.json({ limit: "2mb" }));
+  app.use(express.urlencoded({ limit: "2mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   // tRPC API
