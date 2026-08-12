@@ -13,7 +13,7 @@
 - [x] Add deterministic Vitest coverage for the detection engine, risk scoring, ATT&CK mappings, and evaluation metrics.
 - [x] Add project documentation, security boundaries, and reproducible local setup instructions.
 - [ ] Visually verify the primary flows on desktop and mobile, run type checks and tests, then save a verified checkpoint.
-- [ ] Create a private GitHub repository, commit the verified project with the configured identity, and invite AbdulrahmanRezki as a collaborator after repository access is enabled.
+- [x] Create a private GitHub repository, commit the verified project with the configured identity, and invite AbdulrahmanRezki as a collaborator after repository access is enabled.
 - [x] Add explicit Vitest coverage for ATT&CK mapping metadata and risk-score breakdowns across all detection paths.
 - [x] Expand the README with exact setup, database migration, authentication, scenario replay, and expected evaluation steps.
 - [x] Clarify platform-provided versus self-hosted authentication environment requirements and the local sign-in workflow in the README.
