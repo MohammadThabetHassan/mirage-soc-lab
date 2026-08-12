@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible defect in the controlled MIRAGE lab.
+title: "[Bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not include passwords, session tokens, raw production telemetry, or private infrastructure details. For vulnerabilities, follow SECURITY.md instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Concise summary
+      description: Describe the observed behavior and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: List the minimal safe steps, scenario key, or sanitized fixture needed to reproduce the issue.
+      placeholder: |
+        1. Sign in with a test account
+        2. Run the controlled scenario
+        3. Open the case
+        4. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Safe evidence
+      description: Provide sanitized error text, request ID, screenshots, or test output. Do not include sensitive payloads.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Analyst workspace
+        - Detection engine
+        - Evaluation
+        - Controlled Cowrie import
+        - Case integrity
+        - Authentication or authorization
+        - Database or migration
+        - CI or browser tests
+        - Documentation
+  - type: input
+    id: version
+    attributes:
+      label: MIRAGE revision
+      description: Provide the commit SHA, release tag, or branch.

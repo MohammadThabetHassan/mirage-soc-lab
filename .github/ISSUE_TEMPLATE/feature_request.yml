@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose an improvement consistent with MIRAGE’s controlled defensive scope.
+title: "[Feature]: "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MIRAGE does not accept requests for scanning, credential testing, exploit execution, public honeypot exposure, or action against third-party infrastructure.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the analyst, instructor, or maintainer need.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the desired behavior, user flow, or repository improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: State testable conditions that demonstrate completion.
+      placeholder: |
+        - Given ... when ... then ...
+        - Documentation is updated
+        - Regression coverage is added
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Controlled telemetry
+        - Detection engineering
+        - Analyst experience
+        - Evaluation and ATT&CK coverage
+        - Security and integrity
+        - Database and operations
+        - Documentation and governance
+        - CI and release quality
+  - type: textarea
+    id: safety
+    attributes:
+      label: Defensive-scope impact
+      description: Explain why the proposal remains synthetic, local, authorized, and non-destructive.
+    validations:
+      required: true

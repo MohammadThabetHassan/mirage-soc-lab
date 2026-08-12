@@ -1,24 +1,65 @@
-# MIRAGE — Explainable Deception-Driven SOC Lab
+# MIRAGE SOC Lab
 
-MIRAGE is a **local-first Security Operations Center simulation and evaluation platform**. It generates safe, synthetic telemetry, applies deterministic correlation rules, stores explainable cases, and gives analysts a dark cyberpunk workspace for triage and evaluation.
+[![Quality and Security](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/quality.yml/badge.svg)](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/quality.yml)
+[![Node.js 22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Package manager](https://img.shields.io/badge/pnpm-10.4.1-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![Scope](https://img.shields.io/badge/scope-controlled%20SOC%20lab-0EA5E9)](#defensive-scope)
 
-## Defensive Scope
+**MIRAGE** is a local-first Security Operations Center simulation and evaluation platform. It generates safe synthetic telemetry, applies deterministic detection-as-code rules, stores explainable analyst cases, and presents a traceable SOC workflow for training, evaluation, and security-engineering demonstrations.
 
-MIRAGE is built for synthetic data, controlled labs, and explicitly authorized environments. It does not scan systems, test credentials, or interact with third-party infrastructure. The included scenarios only model synthetic SSH authentication, decoy engagement, and discovery-like event records.
+> **MIRAGE is a controlled-lab application.** It does not scan external systems, test credentials, collect public telemetry, or interact with third-party infrastructure. It is not an autonomous production SOC.
 
-## Included Pipeline
+## Why MIRAGE
 
-1. **Synthetic generator:** creates three controlled scenario definitions.
-2. **Correlation engine:** detects repeated failures, success-after-failure, and a multi-stage decoy/discovery sequence.
-3. **Case management:** stores case evidence, transparent scoring factors, analyst dispositions, and notes.
-4. **ATT&CK context:** links every detection rule to a technique, tactic, rationale, caveat, and reference URL.
-5. **Evaluation:** executes the same deterministic scenario definitions and reports coverage, alert precision, false-positive rate, and average time-to-detect.
+| Capability                   | What it provides                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Controlled telemetry         | Deterministic scenario replay and bounded, redacted imports from a private Cowrie lab fixture.                          |
+| Detection-as-code            | Versioned rules, thresholds, scoring rationale, ATT&CK context, and regression scenarios.                               |
+| Explainable analyst workflow | Evidence timelines, risk-factor breakdowns, analyst notes, dispositions, and case histories.                            |
+| Integrity assurance          | Atomic persistence, append-only disposition history, hash-chained evidence lineage, and verification status.            |
+| Repeatable quality           | Formatting, unit tests, strict TypeScript, production build, dependency audit, and desktop/mobile browser smoke checks. |
 
-## Local Development
+## System overview
 
-MIRAGE needs Node.js 22+, pnpm, and a MySQL-compatible database. **When running in the managed Manus project**, the platform injects `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, and `VITE_OAUTH_PORTAL_URL`; do not create or commit a `.env` file for those values. The platform’s existing OAuth flow provides the dashboard sign-in experience.
+```mermaid
+flowchart LR
+  A[Controlled synthetic scenarios] --> B[Normalization and redaction]
+  C[Private Cowrie lab fixture] --> B
+  B --> D[Detection-as-code engine]
+  D --> E[Explainable cases]
+  E --> F[Evidence lineage and analyst history]
+  F --> G[Authenticated SOC workspace]
+  D --> H[Evaluation corpus and ATT&CK coverage]
+```
 
-**When self-hosting a clone**, create a private, uncommitted `.env` file and supply your own values for `DATABASE_URL`, `JWT_SECRET`, `VITE_APP_ID`, `OAUTH_SERVER_URL`, and `VITE_OAUTH_PORTAL_URL`. These values must belong to your own compatible OAuth deployment and database; platform-provided values cannot be copied to another environment. There is intentionally no email/password fallback because analyst dispositions and notes require an authenticated user. Do not reuse production credentials for development.
+The detailed design is available in [Architecture](docs/ARCHITECTURE.md), while [Security Assurance](docs/SECURITY_ASSURANCE_MATRIX.md) records the control baseline, evidence, and remaining deployment prerequisites.
+
+## Defensive scope
+
+MIRAGE intentionally accepts only the following safe inputs and operations.
+
+| Boundary              | Enforced behavior                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Scenario generation   | Uses deterministic, built-in synthetic scenarios only.                                                                                           |
+| Cowrie import         | Requires an administrator, accepts a bounded JSON-lines payload, allowlists supported event types, and rejects non-private or malformed records. |
+| Data handling         | Does not persist passwords, TTY logs, raw Cowrie records, file-transfer content, or supplied sensitive fields.                                   |
+| Analyst workflow      | Requires authentication; notes and dispositions retain the authenticated analyst attribution.                                                    |
+| Demonstration profile | The optional Cowrie Compose profile uses an internal network and exposes no Cowrie port.                                                         |
+
+## Quick start
+
+### Prerequisites
+
+Install **Node.js 22+**, **pnpm 10.4.1**, and a **MySQL-compatible database**. For self-hosting, provide a compatible OAuth deployment and use a private `.env` file that is never committed.
+
+| Variable                | Purpose                                                              |
+| ----------------------- | -------------------------------------------------------------------- |
+| `DATABASE_URL`          | MySQL-compatible database connection string.                         |
+| `JWT_SECRET`            | Session-signing secret. Use a unique, high-entropy production value. |
+| `VITE_APP_ID`           | Application identifier used by the OAuth integration.                |
+| `OAUTH_SERVER_URL`      | Compatible OAuth service base URL.                                   |
+| `VITE_OAUTH_PORTAL_URL` | OAuth portal URL used by the client sign-in flow.                    |
+| `OWNER_OPEN_ID`         | Required production administrator identity.                          |
 
 ```bash
 pnpm install
@@ -26,42 +67,58 @@ pnpm db:push
 pnpm dev
 ```
 
-The `db:push` script generates and applies the Drizzle migrations. Open the local development URL, select **Sign in to continue**, and complete the OAuth flow configured by the environment above. After the redirect returns to the application, select **Live SOC**. The dashboard is intentionally authenticated because it stores analyst dispositions and notes.
+Open the local URL, choose **Sign in to continue**, and complete the configured OAuth flow. The dashboard remains authenticated because it records analyst dispositions and notes.
 
-## Demonstration Flow
+> Never reuse production credentials in development and never copy platform-provided values into an external deployment.
 
-Choose **Full pipeline story** in the scenario selector and select **Run demo scenario**. This deterministic replay produces SSH authentication failures, a subsequent synthetic success, decoy engagement, and two discovery-like events. The pipeline should create three cases: repeated authentication failures, success-after-failure, and multi-stage decoy engagement and discovery.
+## Demonstration walkthrough
 
-Open any case in the queue to inspect the evidence timeline, explicit rule-linked factors behind the risk score, and ATT&CK context. Enter a note, choose an analyst disposition, and confirm that the note is retained in the case view. Then open **Evaluation** to view the metrics calculated from the same documented scenario definitions. The benign-admin scenario should produce no cases.
+1. Select **Full pipeline story** and choose **Run demo scenario**.
+2. Review the three generated cases: repeated authentication failures, success after failure, and multi-stage decoy/discovery activity.
+3. Open a case to inspect its evidence timeline, deterministic risk factors, and ATT&CK mapping.
+4. Record an analyst note and disposition, then review the immutable history and integrity-verification status.
+5. Open **Evaluation** to review deterministic scenario metrics. The benign-admin scenario should produce no cases.
 
-## Verification
+## Verification and quality gates
 
-Run `pnpm test` for correlation-engine, risk-breakdown, ATT&CK-mapping, and application tests. Run `pnpm check` for TypeScript validation and `pnpm build` before releasing a new revision. The scenario definitions are deterministic so the evaluation metrics are reproducible.
+| Command                 | Purpose                                                                             |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `pnpm format:check`     | Enforces repository formatting.                                                     |
+| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests. |
+| `pnpm check`            | Runs strict TypeScript validation.                                                  |
+| `pnpm build`            | Produces the browser and server production bundles.                                 |
+| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.             |
+| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                |
+| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                |
+| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                     |
+| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.      |
 
-## Controlled Cowrie telemetry adapter
+The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review.
 
-MIRAGE can normalize **recorded, local-lab Cowrie JSON-lines telemetry** through the protected `soc.importControlledCowrie` operation. The adapter is intentionally not a network collector: it accepts a bounded payload from an authenticated analyst workflow and never needs a publicly exposed honeypot.
+## Documentation
 
-| Control                  | Implementation                                                                                                                                                               |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Approved source boundary | Only private RFC1918, loopback, and documentation-net source IPs are accepted.                                                                                               |
-| Event allowlist          | `cowrie.session.connect`, `cowrie.login.failed`, `cowrie.login.success`, `cowrie.command.input`, `cowrie.command.success`, and `cowrie.direct-tcpip.request` are normalized. |
-| Traceability             | The normalized metadata preserves the Cowrie `eventid` plus a one-way session reference.                                                                                     |
-| Redaction rule           | Passwords, tty logs, file-transfer paths/content, file hashes, and raw JSON records are never persisted or returned.                                                         |
-| Safe failure             | Malformed, public-source, and unsupported records are rejected with line-numbered diagnostics that omit raw content.                                                         |
+| Document                                                                     | Purpose                                                                   |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                                         | Component boundaries, data flow, trust boundaries, and persistence model. |
+| [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md)             | Researched hardening roadmap and assurance target.                        |
+| [Security Assurance Matrix](docs/SECURITY_ASSURANCE_MATRIX.md)               | ASVS-inspired control coverage, evidence, and residual risks.             |
+| [Authorization and Abuse Controls](docs/AUTHORIZATION_AND_ABUSE_CONTROLS.md) | Role policy, rate limits, and distributed-scaling boundary.               |
+| [Data Governance](docs/DATA_GOVERNANCE.md)                                   | Integrity, migration, and retention procedures.                           |
+| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)                             | Health checks, request IDs, incident triage, and release operations.      |
+| [Release Readiness](docs/RELEASE_READINESS.md)                               | Verified release evidence and documented limitations.                     |
+| [Release Procedure](docs/RELEASE_PROCEDURE.md)                               | Versioning, migration, deployment, and post-release verification steps.   |
+| [Dependency Security](docs/DEPENDENCY_SECURITY.md)                           | Dependency audit policy and remediation history.                          |
+| [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.           |
+| [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                  |
 
-The fixture corpus at `server/soc/fixtures/controlled-cowrie.ndjson` is deterministic and deliberately redacted. Run `pnpm vitest run server/soc/cowrie.test.ts` to validate the mappings, rejection path, and redaction policy.
+## Detection and ATT&CK context
 
-For a contained Docker demonstration, merge `docker-compose.cowrie-lab.yml` into the environment-specific MIRAGE Compose configuration and start the `cowrie-lab` profile. Its network is marked `internal: true` and publishes no Cowrie port. Supply a local authenticated import endpoint and token through `MIRAGE_IMPORT_URL` and `MIRAGE_IMPORT_TOKEN`; no public listener is part of this profile.
-
-## Case integrity verification
-
-Every generated case records append-only evidence links and analyst disposition entries. Each link extends a SHA-256 hash chain that includes the case identifier, linked event or decision data, and, for evidence, the active detection-rule version. The protected `soc.verifyCaseIntegrity` operation recomputes both chains without modifying their stored records.
-
-The case view reports the verification result together with evidence-link and analyst-decision counts. A failed or unavailable check is an **analyst review signal**: it does not alter a disposition and should be investigated through the immutable history and evidence-lineage panels.
-
-## ATT&CK References
+The included deterministic rules model repeated authentication failures, success after failure, and a multi-stage decoy/discovery sequence. The evaluation corpus labels known positives, a known benign case, and an edge case. Each rule records technique, tactic, rationale, caveat, and reference links.
 
 - [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/)
 - [T1078 — Valid Accounts](https://attack.mitre.org/techniques/T1078/)
 - [T1087 — Account Discovery](https://attack.mitre.org/techniques/T1087/)
+
+## Contributing and support
+
+Constructive contributions that preserve MIRAGE’s controlled defensive scope are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow the project’s [Code of Conduct](CODE_OF_CONDUCT.md), and review the security boundary in [SECURITY.md](SECURITY.md). For feature requests, support questions, and roadmap proposals, use the repository issue templates.
