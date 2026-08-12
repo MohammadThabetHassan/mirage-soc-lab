@@ -1,0 +1,40 @@
+# Controlled-lab demo only. No service publishes a host port and the lab network is internal.
+services:
+  cowrie:
+    image: cowrie/cowrie:latest
+    profiles: ["cowrie-lab"]
+    networks: [controlled_lab]
+    read_only: true
+    tmpfs: [/tmp]
+    # No ports: a Cowrie instance cannot be reached from outside this Compose network.
+
+  fixture-replay:
+    image: curlimages/curl:8.10.1
+    profiles: ["cowrie-lab"]
+    networks: [controlled_lab]
+    depends_on: [mirage]
+    volumes:
+      - ./server/soc/fixtures:/fixtures:ro
+    environment:
+      # Set to a local, authenticated proxy path for the protected tRPC mutation.
+      MIRAGE_IMPORT_URL: ${MIRAGE_IMPORT_URL:-http://mirage:3000/api/trpc/soc.importControlledCowrie}
+      MIRAGE_IMPORT_TOKEN: ${MIRAGE_IMPORT_TOKEN:-}
+    entrypoint: ["/bin/sh", "-ec"]
+    command: >-
+      test -n "$${MIRAGE_IMPORT_TOKEN}" &&
+      curl --fail --silent --show-error --request POST
+      --header "Authorization: Bearer $${MIRAGE_IMPORT_TOKEN}"
+      --header "Content-Type: application/json"
+      --data-binary @/fixtures/controlled-cowrie.ndjson
+      "$${MIRAGE_IMPORT_URL}"
+
+  # The main MIRAGE service definition stays environment-specific. This profile
+  # can be merged with its normal Compose file using: docker compose -f docker-compose.yml -f docker-compose.cowrie-lab.yml --profile cowrie-lab up
+  mirage:
+    profiles: ["cowrie-lab"]
+    image: ${MIRAGE_IMAGE:-mirage-soc-lab:local}
+    networks: [controlled_lab]
+
+networks:
+  controlled_lab:
+    internal: true

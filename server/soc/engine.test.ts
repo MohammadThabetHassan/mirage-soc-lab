@@ -21,7 +21,23 @@ describe("MIRAGE correlation engine", () => {
     const evaluation = evaluateDefinitions();
     expect(evaluation.coverage).toBe(100);
     expect(evaluation.falsePositiveRate).toBe(0);
-    expect(evaluation.scenarios).toHaveLength(3);
+    expect(evaluation.scenarios).toHaveLength(4);
+    expect(evaluation.classMetrics.map(item => item.classification)).toEqual(["known-positive", "known-benign", "edge-case"]);
+    expect(evaluation.coverageMatrix.every(item => item.currentStatus === "validated")).toBe(true);
+  });
+
+  it("does not detect a static edge-case corpus entry one event below the configured threshold", () => {
+    const events = Array.from({ length: 4 }, (_, index) => ({
+      id: `boundary-${index}`,
+      scenarioKey: "threshold-boundary",
+      occurredAt: new Date(`2026-08-12T09:0${index}:00.000Z`),
+      sourceIp: "198.51.100.77",
+      target: "decoy-gateway-01",
+      eventType: "auth_failure" as const,
+      message: "Fixed corpus authentication failure.",
+      metadata: { source: "static-regression-corpus" },
+    }));
+    expect(detectCases(events)).toEqual([]);
   });
 
   it("keeps every detection score equal to its visible risk-factor total", () => {
@@ -42,6 +58,9 @@ describe("MIRAGE correlation engine", () => {
       expect(item.rationale.length).toBeGreaterThan(20);
       expect(item.caveat.length).toBeGreaterThan(20);
       expect(item.referenceUrl).toMatch(/^https:\/\/attack\.mitre\.org\/techniques\//);
+      const coverage = evaluateDefinitions().coverageMatrix.find(entry => entry.ruleId === item.ruleId);
+      expect(coverage?.evidenceField).toBeTruthy();
+      expect(coverage?.testCaseIds.length).toBeGreaterThan(0);
     });
   });
 });

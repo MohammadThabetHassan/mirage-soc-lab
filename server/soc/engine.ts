@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { DetectedCase, EvidenceItem, LabEvent, RiskFactor, Severity } from "@shared/soc";
-import type { ScenarioKey } from "./catalog";
+import type { DetectedCase, EvidenceItem, LabEvent, RiskFactor } from "@shared/soc";
+import { getRule, riskFactorsFor, SCENARIOS, severityFor, type DetectionRule, type ScenarioKey } from "./catalog";
+import { buildAttackCoverageMatrix } from "./coverage";
 
 const sourceIp = "198.51.100.77";
 const target = "decoy-gateway-01";
@@ -34,25 +35,30 @@ export function generateScenario(scenarioKey: ScenarioKey): LabEvent[] {
     ];
   }
 
-  const failures = Array.from({ length: scenarioKey === "full-pipeline" ? 6 : 5 }, (_, index) =>
+  const repeatedFailureRule = getRule("repeated-auth-failures");
+  const failureCount = scenarioKey === "threshold-boundary"
+    ? Math.max(0, (repeatedFailureRule.threshold.minimumFailures ?? 1) - 1)
+    : scenarioKey === "full-pipeline" ? 6 : 5;
+  const failures = Array.from({ length: failureCount }, (_, index) =>
     event(scenarioKey, index, "auth_failure", `SSH authentication failed for account candidate ${index + 1}.`, { username: index % 2 ? "root" : "ops" }),
   );
 
-  const success = event(scenarioKey, 7, "auth_success", "SSH authentication succeeded after repeated failures.", { username: "ops" });
+  if (scenarioKey === "threshold-boundary") return failures;
 
+  const success = event(scenarioKey, 7, "auth_success", "SSH authentication succeeded after repeated failures.", { username: "ops" });
   if (scenarioKey === "credential-probe") return [...failures, success];
 
   return [
     ...failures,
     success,
-    event(scenarioKey, 8, "decoy_interaction", "Session opened with decoy SSH service.", { username: "ops" }),
+    event(scenarioKey, 8, "decoy_interaction", "Session opened with controlled decoy SSH service.", { username: "ops" }),
     event(scenarioKey, 9, "discovery", "Discovery-like command observed: id", { username: "ops", command: "id" }),
     event(scenarioKey, 10, "discovery", "Discovery-like command observed: cat /etc/passwd", { username: "ops", command: "cat /etc/passwd" }),
   ];
 }
 
-function asEvidence(events: LabEvent[], limit?: number): EvidenceItem[] {
-  return (limit ? events.slice(0, limit) : events).map(item => ({
+function asEvidence(events: LabEvent[]): EvidenceItem[] {
+  return events.map(item => ({
     eventId: item.id,
     occurredAt: item.occurredAt,
     label: item.eventType.replaceAll("_", " "),
@@ -61,25 +67,24 @@ function asEvidence(events: LabEvent[], limit?: number): EvidenceItem[] {
   }));
 }
 
-function caseFrom(
-  scenarioKey: string,
-  ruleId: string,
-  title: string,
-  severity: Severity,
-  score: number,
-  events: LabEvent[],
-  factors: RiskFactor[],
-  summary: string,
-): DetectedCase {
+function withinMinutes(events: LabEvent[], windowMinutes: number): boolean {
+  if (events.length < 2) return true;
+  const start = events[0]?.occurredAt.getTime() ?? 0;
+  const end = events.at(-1)?.occurredAt.getTime() ?? start;
+  return end - start <= windowMinutes * 60_000;
+}
+
+function caseFrom(rule: DetectionRule, scenarioKey: string, events: LabEvent[], details: Record<string, string | number> = {}): DetectedCase {
+  const factors: RiskFactor[] = riskFactorsFor(rule, details);
   return {
     id: randomUUID(),
     scenarioKey,
-    title,
-    severity,
-    riskScore: score,
-    ruleId,
+    title: rule.title,
+    severity: severityFor(rule),
+    riskScore: rule.severityGuidance.riskScore,
+    ruleId: rule.id,
     sourceIp: events[0]?.sourceIp ?? "unknown",
-    summary,
+    summary: rule.summary,
     evidence: asEvidence(events),
     riskBreakdown: factors,
     startedAt: events[0]?.occurredAt ?? new Date(),
@@ -96,86 +101,79 @@ export function detectCases(events: LabEvent[]): DetectedCase[] {
   const detected: DetectedCase[] = [];
   const scenarioKey = sorted[0]?.scenarioKey ?? "unknown";
 
-  if (failures.length >= 5) {
-    detected.push(caseFrom(
-      scenarioKey,
-      "repeated-auth-failures",
-      "Repeated SSH authentication failures",
-      "high",
-      72,
-      failures,
-      [
-        { label: "Failed attempts", points: 40, rationale: `${failures.length} failures exceeded the threshold of 5 within 10 minutes.` },
-        { label: "Source concentration", points: 20, rationale: "All failures originated from one source IP." },
-        { label: "Privileged targeting", points: 12, rationale: "The synthetic stream includes root account candidates." },
-      ],
-      "A source generated a concentrated authentication-failure burst against the decoy gateway.",
-    ));
+  const repeatedRule = getRule("repeated-auth-failures");
+  if (failures.length >= (repeatedRule.threshold.minimumFailures ?? Number.MAX_SAFE_INTEGER) && withinMinutes(failures, repeatedRule.correlationWindowMinutes)) {
+    detected.push(caseFrom(repeatedRule, scenarioKey, failures, { failureCount: failures.length }));
   }
 
-  if (success && failures.length >= 3 && success.occurredAt.getTime() - failures.at(-1)!.occurredAt.getTime() <= 15 * 60_000) {
-    detected.push(caseFrom(
-      scenarioKey,
-      "success-after-failure",
-      "Successful login after repeated failures",
-      "high",
-      81,
-      [...failures, success],
-      [
-        { label: "Prior failed attempts", points: 35, rationale: `${failures.length} previous failures were linked to the same source.` },
-        { label: "Authentication success", points: 30, rationale: "A login success followed the failed attempts within the configured correlation window." },
-        { label: "Temporal proximity", points: 16, rationale: "The transition from failure to success occurred within 15 minutes." },
-      ],
-      "A successful authentication followed a concentrated series of failures from the same source.",
-    ));
+  const successRule = getRule("success-after-failure");
+  if (success && failures.length >= (successRule.threshold.minimumFailures ?? Number.MAX_SAFE_INTEGER) &&
+      success.occurredAt.getTime() - (failures.at(-1)?.occurredAt.getTime() ?? success.occurredAt.getTime()) <= successRule.correlationWindowMinutes * 60_000) {
+    detected.push(caseFrom(successRule, scenarioKey, [...failures, success], { failureCount: failures.length }));
   }
 
-  if (success && decoy && discovery.length >= 2 && failures.length >= 3) {
-    detected.push(caseFrom(
-      scenarioKey,
-      "multi-stage-sequence",
-      "Multi-stage decoy engagement and discovery",
-      "critical",
-      94,
-      [...failures, success, decoy, ...discovery],
-      [
-        { label: "Credential activity", points: 28, rationale: "The sequence begins with repeated authentication failures and a later success." },
-        { label: "Decoy engagement", points: 34, rationale: "The source opened a session with a service that has no expected production user population." },
-        { label: "Discovery sequence", points: 32, rationale: `${discovery.length} discovery-like command events followed the session.` },
-      ],
-      "Correlated credential activity, decoy engagement, and discovery-like behavior formed a complete lab attack story.",
-    ));
+  const multiStageRule = getRule("multi-stage-sequence");
+  const allSequenceEvents = success && decoy ? [...failures, success, decoy, ...discovery] : [];
+  if (success && decoy &&
+      failures.length >= (multiStageRule.threshold.minimumFailures ?? Number.MAX_SAFE_INTEGER) &&
+      discovery.length >= (multiStageRule.threshold.minimumDiscoveryEvents ?? Number.MAX_SAFE_INTEGER) &&
+      multiStageRule.threshold.requiresAuthSuccess !== false && multiStageRule.threshold.requiresDecoyInteraction !== false &&
+      withinMinutes(allSequenceEvents, multiStageRule.correlationWindowMinutes)) {
+    detected.push(caseFrom(multiStageRule, scenarioKey, allSequenceEvents, { failureCount: failures.length }));
   }
 
   return detected;
 }
 
 export function evaluateDefinitions() {
-  const keys: ScenarioKey[] = ["full-pipeline", "credential-probe", "benign-admin"];
-  const expected = new Map<ScenarioKey, number>([["full-pipeline", 3], ["credential-probe", 2], ["benign-admin", 0]]);
-  const results = keys.map(key => {
-    const events = generateScenario(key);
+  const scenarios = SCENARIOS.map(scenario => {
+    const events = generateScenario(scenario.key);
     const detections = detectCases(events);
     const firstEvent = events[0]?.occurredAt.getTime() ?? 0;
     const averageTimeToDetect = detections.length
       ? Math.round(detections.reduce((sum, item) => sum + (item.lastSeenAt.getTime() - firstEvent) / 60_000, 0) / detections.length * 10) / 10
       : 0;
+    const observedRuleIds = detections.map(item => item.ruleId);
+    const matchedExpected = scenario.expectedRuleIds.filter(ruleId => observedRuleIds.includes(ruleId)).length;
     return {
-      key,
-      expectedDetections: expected.get(key) ?? 0,
+      ...scenario,
+      expectedDetections: scenario.expectedRuleIds.length,
       observedDetections: detections.length,
-      falsePositives: key === "benign-admin" ? detections.length : 0,
+      matchedExpected,
+      observedRuleIds,
+      falsePositives: scenario.classification === "known-benign" ? detections.length : 0,
       averageTimeToDetect,
     };
   });
-  const expectedTotal = results.reduce((sum, item) => sum + item.expectedDetections, 0);
-  const observedTotal = results.reduce((sum, item) => sum + item.observedDetections, 0);
-  const falsePositives = results.reduce((sum, item) => sum + item.falsePositives, 0);
+  const expectedTotal = scenarios.reduce((sum, item) => sum + item.expectedDetections, 0);
+  const observedTotal = scenarios.reduce((sum, item) => sum + item.observedDetections, 0);
+  const falsePositives = scenarios.reduce((sum, item) => sum + item.falsePositives, 0);
+  const detectedScenarioCount = scenarios.filter(item => item.observedDetections > 0).length;
+  const scenarioClasses = ["known-positive", "known-benign", "edge-case"] as const;
+  const classMetrics = scenarioClasses.map(classification => {
+    const classScenarios = scenarios.filter(item => item.classification === classification);
+    const expected = classScenarios.reduce((sum, item) => sum + item.expectedDetections, 0);
+    const observed = classScenarios.reduce((sum, item) => sum + item.observedDetections, 0);
+    const matched = classScenarios.reduce((sum, item) => sum + item.matchedExpected, 0);
+    const classFalsePositives = classScenarios.reduce((sum, item) => sum + item.falsePositives, 0);
+    const detected = classScenarios.filter(item => item.observedDetections > 0);
+    return {
+      classification,
+      scenarios: classScenarios.length,
+      precision: observed ? ((observed - classFalsePositives) / observed) * 100 : 0,
+      recallCoverage: expected ? (matched / expected) * 100 : 0,
+      falsePositiveRate: classScenarios.length ? (classFalsePositives / classScenarios.length) * 100 : 0,
+      averageTimeToDetect: detected.length ? Math.round(detected.reduce((sum, item) => sum + item.averageTimeToDetect, 0) / detected.length * 10) / 10 : 0,
+    };
+  });
   return {
-    scenarios: results,
-    coverage: expectedTotal ? (results.reduce((sum, item) => sum + Math.min(item.expectedDetections, item.observedDetections), 0) / expectedTotal) * 100 : 0,
+    catalogVersion: "1.0.0",
+    scenarios,
+    coverage: expectedTotal ? (scenarios.reduce((sum, item) => sum + item.matchedExpected, 0) / expectedTotal) * 100 : 0,
     alertPrecision: observedTotal ? ((observedTotal - falsePositives) / observedTotal) * 100 : 0,
-    falsePositiveRate: results.filter(item => item.key === "benign-admin").length ? falsePositives / results.filter(item => item.key === "benign-admin").length * 100 : 0,
-    averageTimeToDetect: Math.round(results.filter(item => item.observedDetections > 0).reduce((sum, item) => sum + item.averageTimeToDetect, 0) / 2 * 10) / 10,
+    falsePositiveRate: scenarios.filter(item => item.classification === "known-benign").length ? falsePositives / scenarios.filter(item => item.classification === "known-benign").length * 100 : 0,
+    averageTimeToDetect: detectedScenarioCount ? Math.round(scenarios.filter(item => item.observedDetections > 0).reduce((sum, item) => sum + item.averageTimeToDetect, 0) / detectedScenarioCount * 10) / 10 : 0,
+    classMetrics,
+    coverageMatrix: buildAttackCoverageMatrix(scenarios),
   };
 }
