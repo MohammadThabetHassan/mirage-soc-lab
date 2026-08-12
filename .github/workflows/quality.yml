@@ -36,6 +36,8 @@ jobs:
         run: pnpm check
       - name: Production build
         run: pnpm build
+      - name: Enforce client bundle budget
+        run: pnpm check:bundle
 
   dependency-audit:
     name: Production dependency audit
@@ -70,3 +72,36 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Run browser smoke tests
         run: pnpm test:browser
+
+  database-persistence:
+    name: MySQL migration and persistence integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/mirage_test
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: mirage_test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply migrations to disposable MySQL
+        run: pnpm exec drizzle-kit migrate
+      - name: Verify persisted scenario and audit chains
+        run: pnpm test:persistence
