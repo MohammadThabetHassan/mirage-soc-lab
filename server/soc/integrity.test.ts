@@ -49,6 +49,51 @@ describe("case evidence integrity", () => {
     ).not.toBe(second);
   });
 
+  it("verifies a valid evidence chain retrieved out of insertion order", () => {
+    const firstHash = evidenceLineageHash({
+      previousHash: null,
+      caseId: "case-1",
+      eventId: "event-1",
+      ruleId: "repeated-auth-failures",
+      ruleVersion: "1.0.0",
+    });
+    const secondHash = evidenceLineageHash({
+      previousHash: firstHash,
+      caseId: "case-1",
+      eventId: "event-2",
+      ruleId: "repeated-auth-failures",
+      ruleVersion: "1.0.0",
+    });
+
+    const result = assessCaseIntegrity({
+      evidenceLineage: [
+        {
+          previousHash: firstHash,
+          entryHash: secondHash,
+          caseId: "case-1",
+          eventId: "event-2",
+          ruleId: "repeated-auth-failures",
+          ruleVersion: "1.0.0",
+        },
+        {
+          previousHash: null,
+          entryHash: firstHash,
+          caseId: "case-1",
+          eventId: "event-1",
+          ruleId: "repeated-auth-failures",
+          ruleVersion: "1.0.0",
+        },
+      ],
+      dispositionHistory: [],
+    });
+
+    expect(result).toEqual({
+      verified: true,
+      evidence: { verified: true, entries: 2 },
+      dispositions: { verified: true, entries: 0 },
+    });
+  });
+
   it("reports a verified case only when both evidence and disposition chains are intact", () => {
     const evidenceHash = evidenceLineageHash({
       previousHash: null,
