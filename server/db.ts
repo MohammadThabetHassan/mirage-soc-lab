@@ -174,50 +174,52 @@ export async function persistScenarioRun(input: {
     throw new Error(
       "Database unavailable. Configure the MIRAGE database before running a scenario."
     );
-  await db.insert(scenarioRuns).values({ ...input.run, status: "completed" });
-  await db.insert(socCases).values(input.cases);
-  const caseByRule = new Map(input.cases.map(item => [item.ruleId, item.id]));
-  const eventRows = input.events.map(item => ({
-    ...item,
-    caseId:
-      item.eventType === "auth_failure"
-        ? (caseByRule.get("repeated-auth-failures") ?? null)
-        : item.eventType === "auth_success"
-          ? (caseByRule.get("success-after-failure") ?? null)
-          : ["decoy_interaction", "discovery"].includes(item.eventType)
-            ? (caseByRule.get("multi-stage-sequence") ?? null)
-            : null,
-  }));
-  await db.insert(socEvents).values(eventRows);
+  await db.transaction(async tx => {
+    await tx.insert(scenarioRuns).values({ ...input.run, status: "completed" });
+    await tx.insert(socCases).values(input.cases);
+    const caseByRule = new Map(input.cases.map(item => [item.ruleId, item.id]));
+    const eventRows = input.events.map(item => ({
+      ...item,
+      caseId:
+        item.eventType === "auth_failure"
+          ? (caseByRule.get("repeated-auth-failures") ?? null)
+          : item.eventType === "auth_success"
+            ? (caseByRule.get("success-after-failure") ?? null)
+            : ["decoy_interaction", "discovery"].includes(item.eventType)
+              ? (caseByRule.get("multi-stage-sequence") ?? null)
+              : null,
+    }));
+    await tx.insert(socEvents).values(eventRows);
 
-  const lineageRows: Array<typeof caseEvidenceLineage.$inferInsert> = [];
-  for (const socCase of input.cases) {
-    let previousHash: string | null = null;
-    for (const evidence of eventRows.filter(
-      event => event.caseId === socCase.id
-    )) {
-      const ruleVersion = socCase.ruleVersion ?? "1.0.0";
-      const entryHash = evidenceLineageHash({
-        previousHash,
-        caseId: socCase.id,
-        eventId: evidence.id,
-        ruleId: socCase.ruleId,
-        ruleVersion,
-      });
-      lineageRows.push({
-        id: randomUUID(),
-        caseId: socCase.id,
-        eventId: evidence.id,
-        ruleId: socCase.ruleId,
-        ruleVersion,
-        previousHash,
-        entryHash,
-      });
-      previousHash = entryHash;
+    const lineageRows: Array<typeof caseEvidenceLineage.$inferInsert> = [];
+    for (const socCase of input.cases) {
+      let previousHash: string | null = null;
+      for (const evidence of eventRows.filter(
+        event => event.caseId === socCase.id
+      )) {
+        const ruleVersion = socCase.ruleVersion ?? "1.0.0";
+        const entryHash = evidenceLineageHash({
+          previousHash,
+          caseId: socCase.id,
+          eventId: evidence.id,
+          ruleId: socCase.ruleId,
+          ruleVersion,
+        });
+        lineageRows.push({
+          id: randomUUID(),
+          caseId: socCase.id,
+          eventId: evidence.id,
+          ruleId: socCase.ruleId,
+          ruleVersion,
+          previousHash,
+          entryHash,
+        });
+        previousHash = entryHash;
+      }
     }
-  }
-  if (lineageRows.length)
-    await db.insert(caseEvidenceLineage).values(lineageRows);
+    if (lineageRows.length)
+      await tx.insert(caseEvidenceLineage).values(lineageRows);
+  });
 }
 
 export async function persistControlledCowrieEvents(events: InsertSocEvent[]) {
@@ -242,40 +244,42 @@ export async function dispositionSocCase(input: {
     throw new Error(
       "Database unavailable. Configure the MIRAGE database before changing a case."
     );
-  const [latestHistory] = await db
-    .select()
-    .from(caseDispositionHistory)
-    .where(eq(caseDispositionHistory.caseId, input.caseId))
-    .orderBy(desc(caseDispositionHistory.createdAt))
-    .limit(1);
-  const previousHash = latestHistory?.entryHash ?? null;
-  const entryHash = dispositionHistoryHash({
-    previousHash,
-    caseId: input.caseId,
-    disposition: input.disposition,
-    note: input.note,
-    authorName: input.authorName,
+  await db.transaction(async tx => {
+    const [latestHistory] = await tx
+      .select()
+      .from(caseDispositionHistory)
+      .where(eq(caseDispositionHistory.caseId, input.caseId))
+      .orderBy(desc(caseDispositionHistory.createdAt))
+      .limit(1);
+    const previousHash = latestHistory?.entryHash ?? null;
+    const entryHash = dispositionHistoryHash({
+      previousHash,
+      caseId: input.caseId,
+      disposition: input.disposition,
+      note: input.note,
+      authorName: input.authorName,
+    });
+    const note: InsertCaseNote = {
+      id: input.noteId,
+      caseId: input.caseId,
+      disposition: input.disposition,
+      body: input.note,
+      authorName: input.authorName,
+    };
+    await tx.insert(caseNotes).values(note);
+    await tx.insert(caseDispositionHistory).values({
+      id: randomUUID(),
+      caseId: input.caseId,
+      disposition: input.disposition,
+      note: input.note,
+      authorName: input.authorName,
+      previousHash,
+      entryHash,
+    });
+    // This is a current-state projection only; history above is append-only and authoritative.
+    await tx
+      .update(socCases)
+      .set({ disposition: input.disposition })
+      .where(eq(socCases.id, input.caseId));
   });
-  const note: InsertCaseNote = {
-    id: input.noteId,
-    caseId: input.caseId,
-    disposition: input.disposition,
-    body: input.note,
-    authorName: input.authorName,
-  };
-  await db.insert(caseNotes).values(note);
-  await db.insert(caseDispositionHistory).values({
-    id: randomUUID(),
-    caseId: input.caseId,
-    disposition: input.disposition,
-    note: input.note,
-    authorName: input.authorName,
-    previousHash,
-    entryHash,
-  });
-  // This is a current-state projection only; history above is append-only and authoritative.
-  await db
-    .update(socCases)
-    .set({ disposition: input.disposition })
-    .where(eq(socCases.id, input.caseId));
 }
