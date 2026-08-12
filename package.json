@@ -9,7 +9,10 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "security:audit": "pnpm audit --prod --audit-level=high",
     "test": "vitest run",
+    "quality": "pnpm format:check && pnpm test && pnpm check && pnpm build",
     "db:push": "drizzle-kit generate && drizzle-kit migrate"
   },
   "dependencies": {

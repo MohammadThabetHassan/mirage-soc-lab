@@ -42,13 +42,13 @@ Run `pnpm test` for correlation-engine, risk-breakdown, ATT&CK-mapping, and appl
 
 MIRAGE can normalize **recorded, local-lab Cowrie JSON-lines telemetry** through the protected `soc.importControlledCowrie` operation. The adapter is intentionally not a network collector: it accepts a bounded payload from an authenticated analyst workflow and never needs a publicly exposed honeypot.
 
-| Control | Implementation |
-|---|---|
-| Approved source boundary | Only private RFC1918, loopback, and documentation-net source IPs are accepted. |
-| Event allowlist | `cowrie.session.connect`, `cowrie.login.failed`, `cowrie.login.success`, `cowrie.command.input`, `cowrie.command.success`, and `cowrie.direct-tcpip.request` are normalized. |
-| Traceability | The normalized metadata preserves the Cowrie `eventid` plus a one-way session reference. |
-| Redaction rule | Passwords, tty logs, file-transfer paths/content, file hashes, and raw JSON records are never persisted or returned. |
-| Safe failure | Malformed, public-source, and unsupported records are rejected with line-numbered diagnostics that omit raw content. |
+| Control                  | Implementation                                                                                                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Approved source boundary | Only private RFC1918, loopback, and documentation-net source IPs are accepted.                                                                                               |
+| Event allowlist          | `cowrie.session.connect`, `cowrie.login.failed`, `cowrie.login.success`, `cowrie.command.input`, `cowrie.command.success`, and `cowrie.direct-tcpip.request` are normalized. |
+| Traceability             | The normalized metadata preserves the Cowrie `eventid` plus a one-way session reference.                                                                                     |
+| Redaction rule           | Passwords, tty logs, file-transfer paths/content, file hashes, and raw JSON records are never persisted or returned.                                                         |
+| Safe failure             | Malformed, public-source, and unsupported records are rejected with line-numbered diagnostics that omit raw content.                                                         |
 
 The fixture corpus at `server/soc/fixtures/controlled-cowrie.ndjson` is deterministic and deliberately redacted. Run `pnpm vitest run server/soc/cowrie.test.ts` to validate the mappings, rejection path, and redaction policy.
 

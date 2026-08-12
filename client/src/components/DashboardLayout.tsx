@@ -21,10 +21,16 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { Activity, BarChart3, LayoutDashboard, LogOut, PanelLeft } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  LayoutDashboard,
+  LogOut,
+  PanelLeft,
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 
 const menuItems = [
@@ -53,7 +59,7 @@ export default function DashboardLayout({
   }, [sidebarWidth]);
 
   if (loading) {
-    return <DashboardLayoutSkeleton />
+    return <DashboardLayoutSkeleton />;
   }
 
   if (!user) {
@@ -65,7 +71,8 @@ export default function DashboardLayout({
               Sign in to continue
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              Access to this dashboard requires authentication. Continue to
+              launch the login flow.
             </p>
           </div>
           <Button
@@ -164,13 +171,17 @@ function DashboardLayoutContent({
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
                 aria-label="Toggle navigation"
               >
-                    <PanelLeft className="h-4 w-4 text-cyan-300" />
+                <PanelLeft className="h-4 w-4 text-cyan-300" />
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="min-w-0">
-                    <span className="block font-black tracking-[0.22em] text-cyan-300 text-sm truncate">MIRAGE</span>
-                    <span className="block text-[9px] tracking-[0.18em] text-muted-foreground uppercase mt-0.5">SOC LAB</span>
+                    <span className="block font-black tracking-[0.22em] text-cyan-300 text-sm truncate">
+                      MIRAGE
+                    </span>
+                    <span className="block text-[9px] tracking-[0.18em] text-muted-foreground uppercase mt-0.5">
+                      SOC LAB
+                    </span>
                   </div>
                 </div>
               ) : null}
@@ -189,7 +200,9 @@ function DashboardLayoutContent({
                       tooltip={item.label}
                       className={`h-10 transition-all font-normal`}
                     >
-                      <item.icon className={`h-4 w-4 ${isActive ? "text-cyan-300" : ""}`} />
+                      <item.icon
+                        className={`h-4 w-4 ${isActive ? "text-cyan-300" : ""}`}
+                      />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

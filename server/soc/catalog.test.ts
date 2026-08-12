@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DETECTION_CATALOG, DETECTION_RULES, SCENARIOS, validateDetectionCatalog } from "./catalog";
+import {
+  DETECTION_CATALOG,
+  DETECTION_RULES,
+  SCENARIOS,
+  validateDetectionCatalog,
+} from "./catalog";
 
 describe("detection-as-code catalog", () => {
   it("provides complete, scenario-backed metadata for every rule", () => {
@@ -10,8 +15,15 @@ describe("detection-as-code catalog", () => {
       expect(rule.correlationWindowMinutes).toBeGreaterThan(0);
       expect(rule.mitreMappings.length).toBeGreaterThan(0);
       expect(rule.expectedBenignCases.length).toBeGreaterThan(0);
-      expect(rule.riskScoreFactors.reduce((total, factor) => total + factor.points, 0)).toBe(rule.severityGuidance.riskScore);
-      expect(SCENARIOS.some(scenario => scenario.expectedRuleIds.includes(rule.id))).toBe(true);
+      expect(
+        rule.riskScoreFactors.reduce(
+          (total, factor) => total + factor.points,
+          0
+        )
+      ).toBe(rule.severityGuidance.riskScore);
+      expect(
+        SCENARIOS.some(scenario => scenario.expectedRuleIds.includes(rule.id))
+      ).toBe(true);
     }
   });
 
@@ -22,6 +34,8 @@ describe("detection-as-code catalog", () => {
 
     const unknownReference = structuredClone(DETECTION_CATALOG);
     unknownReference.scenarios[0]!.expectedRuleIds = ["does-not-exist"];
-    expect(() => validateDetectionCatalog(unknownReference)).toThrow(/references missing rule/);
+    expect(() => validateDetectionCatalog(unknownReference)).toThrow(
+      /references missing rule/
+    );
   });
 });

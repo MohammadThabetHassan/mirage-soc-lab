@@ -1,58 +1,165 @@
 import { describe, expect, it } from "vitest";
-import { assessCaseIntegrity, dispositionHistoryHash, evidenceLineageHash, verifyHashChain } from "./integrity";
+import {
+  assessCaseIntegrity,
+  dispositionHistoryHash,
+  evidenceLineageHash,
+  verifyHashChain,
+} from "./integrity";
 
 describe("case evidence integrity", () => {
   it("builds a verifiable append-only evidence chain tied to rule version and event IDs", () => {
-    const first = evidenceLineageHash({ previousHash: null, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" });
-    const second = evidenceLineageHash({ previousHash: first, caseId: "case-1", eventId: "event-2", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" });
-    const entries = [{ previousHash: null, entryHash: first }, { previousHash: first, entryHash: second }];
-
-    expect(verifyHashChain(entries, (previousHash, index) => evidenceLineageHash({
-      previousHash,
+    const first = evidenceLineageHash({
+      previousHash: null,
       caseId: "case-1",
-      eventId: `event-${index + 1}`,
+      eventId: "event-1",
       ruleId: "repeated-auth-failures",
       ruleVersion: "1.0.0",
-    }))).toBe(true);
-    expect(evidenceLineageHash({ previousHash: first, caseId: "case-1", eventId: "event-2", ruleId: "repeated-auth-failures", ruleVersion: "2.0.0" })).not.toBe(second);
+    });
+    const second = evidenceLineageHash({
+      previousHash: first,
+      caseId: "case-1",
+      eventId: "event-2",
+      ruleId: "repeated-auth-failures",
+      ruleVersion: "1.0.0",
+    });
+    const entries = [
+      { previousHash: null, entryHash: first },
+      { previousHash: first, entryHash: second },
+    ];
+
+    expect(
+      verifyHashChain(entries, (previousHash, index) =>
+        evidenceLineageHash({
+          previousHash,
+          caseId: "case-1",
+          eventId: `event-${index + 1}`,
+          ruleId: "repeated-auth-failures",
+          ruleVersion: "1.0.0",
+        })
+      )
+    ).toBe(true);
+    expect(
+      evidenceLineageHash({
+        previousHash: first,
+        caseId: "case-1",
+        eventId: "event-2",
+        ruleId: "repeated-auth-failures",
+        ruleVersion: "2.0.0",
+      })
+    ).not.toBe(second);
   });
 
   it("reports a verified case only when both evidence and disposition chains are intact", () => {
-    const evidenceHash = evidenceLineageHash({ previousHash: null, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" });
-    const dispositionHash = dispositionHistoryHash({ previousHash: null, caseId: "case-1", disposition: "suspicious", note: "Review requested", authorName: "Analyst A" });
-    const result = assessCaseIntegrity({
-      evidenceLineage: [{ previousHash: null, entryHash: evidenceHash, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" }],
-      dispositionHistory: [{ previousHash: null, entryHash: dispositionHash, caseId: "case-1", disposition: "suspicious", note: "Review requested", authorName: "Analyst A" }],
+    const evidenceHash = evidenceLineageHash({
+      previousHash: null,
+      caseId: "case-1",
+      eventId: "event-1",
+      ruleId: "repeated-auth-failures",
+      ruleVersion: "1.0.0",
     });
-    expect(result).toEqual({ verified: true, evidence: { verified: true, entries: 1 }, dispositions: { verified: true, entries: 1 } });
+    const dispositionHash = dispositionHistoryHash({
+      previousHash: null,
+      caseId: "case-1",
+      disposition: "suspicious",
+      note: "Review requested",
+      authorName: "Analyst A",
+    });
+    const result = assessCaseIntegrity({
+      evidenceLineage: [
+        {
+          previousHash: null,
+          entryHash: evidenceHash,
+          caseId: "case-1",
+          eventId: "event-1",
+          ruleId: "repeated-auth-failures",
+          ruleVersion: "1.0.0",
+        },
+      ],
+      dispositionHistory: [
+        {
+          previousHash: null,
+          entryHash: dispositionHash,
+          caseId: "case-1",
+          disposition: "suspicious",
+          note: "Review requested",
+          authorName: "Analyst A",
+        },
+      ],
+    });
+    expect(result).toEqual({
+      verified: true,
+      evidence: { verified: true, entries: 1 },
+      dispositions: { verified: true, entries: 1 },
+    });
 
     const tampered = assessCaseIntegrity({
-      evidenceLineage: [{ previousHash: null, entryHash: evidenceHash, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" }],
-      dispositionHistory: [{ previousHash: null, entryHash: dispositionHash, caseId: "case-1", disposition: "confirmed", note: "Review requested", authorName: "Analyst A" }],
+      evidenceLineage: [
+        {
+          previousHash: null,
+          entryHash: evidenceHash,
+          caseId: "case-1",
+          eventId: "event-1",
+          ruleId: "repeated-auth-failures",
+          ruleVersion: "1.0.0",
+        },
+      ],
+      dispositionHistory: [
+        {
+          previousHash: null,
+          entryHash: dispositionHash,
+          caseId: "case-1",
+          disposition: "confirmed",
+          note: "Review requested",
+          authorName: "Analyst A",
+        },
+      ],
     });
     expect(tampered.verified).toBe(false);
     expect(tampered.dispositions.verified).toBe(false);
   });
 
   it("detects a tampered disposition-history entry", () => {
-    const first = dispositionHistoryHash({ previousHash: null, caseId: "case-1", disposition: "suspicious", note: "Review requested", authorName: "Analyst A" });
-    const second = dispositionHistoryHash({ previousHash: first, caseId: "case-1", disposition: "confirmed", note: "Validated in lab", authorName: "Analyst B" });
-    const entries = [{ previousHash: null, entryHash: first }, { previousHash: first, entryHash: second }];
+    const first = dispositionHistoryHash({
+      previousHash: null,
+      caseId: "case-1",
+      disposition: "suspicious",
+      note: "Review requested",
+      authorName: "Analyst A",
+    });
+    const second = dispositionHistoryHash({
+      previousHash: first,
+      caseId: "case-1",
+      disposition: "confirmed",
+      note: "Validated in lab",
+      authorName: "Analyst B",
+    });
+    const entries = [
+      { previousHash: null, entryHash: first },
+      { previousHash: first, entryHash: second },
+    ];
 
-    expect(verifyHashChain(entries, (previousHash, index) => dispositionHistoryHash({
-      previousHash,
-      caseId: "case-1",
-      disposition: index === 0 ? "suspicious" : "confirmed",
-      note: index === 0 ? "Review requested" : "Validated in lab",
-      authorName: index === 0 ? "Analyst A" : "Analyst B",
-    }))).toBe(true);
+    expect(
+      verifyHashChain(entries, (previousHash, index) =>
+        dispositionHistoryHash({
+          previousHash,
+          caseId: "case-1",
+          disposition: index === 0 ? "suspicious" : "confirmed",
+          note: index === 0 ? "Review requested" : "Validated in lab",
+          authorName: index === 0 ? "Analyst A" : "Analyst B",
+        })
+      )
+    ).toBe(true);
     entries[1]!.entryHash = "tampered";
-    expect(verifyHashChain(entries, (previousHash, index) => dispositionHistoryHash({
-      previousHash,
-      caseId: "case-1",
-      disposition: index === 0 ? "suspicious" : "confirmed",
-      note: index === 0 ? "Review requested" : "Validated in lab",
-      authorName: index === 0 ? "Analyst A" : "Analyst B",
-    }))).toBe(false);
+    expect(
+      verifyHashChain(entries, (previousHash, index) =>
+        dispositionHistoryHash({
+          previousHash,
+          caseId: "case-1",
+          disposition: index === 0 ? "suspicious" : "confirmed",
+          note: index === 0 ? "Review requested" : "Validated in lab",
+          authorName: index === 0 ? "Analyst A" : "Analyst B",
+        })
+      )
+    ).toBe(false);
   });
 });

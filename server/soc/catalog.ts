@@ -20,12 +20,16 @@ const ruleSchema = z.object({
     requiresAuthSuccess: z.boolean().optional(),
   }),
   correlationWindowMinutes: z.number().int().positive(),
-  mitreMappings: z.array(z.object({
-    techniqueId: z.string().regex(/^T\d{4}$/),
-    techniqueName: z.string().min(1),
-    tactic: z.string().min(1),
-    referenceUrl: z.string().url(),
-  })).min(1),
+  mitreMappings: z
+    .array(
+      z.object({
+        techniqueId: z.string().regex(/^T\d{4}$/),
+        techniqueName: z.string().min(1),
+        tactic: z.string().min(1),
+        referenceUrl: z.string().url(),
+      })
+    )
+    .min(1),
   expectedBenignCases: z.array(z.string().min(1)).min(1),
   severityGuidance: z.object({
     severity: severitySchema,
@@ -41,19 +45,26 @@ const scenarioSchema = z.object({
   classification: z.enum(["known-positive", "known-benign", "edge-case"]),
   expectedRuleIds: z.array(z.string()),
 });
-const catalogSchema = z.object({
-  version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  rules: z.array(ruleSchema).min(1),
-  scenarios: z.array(scenarioSchema).min(1),
-}).superRefine((catalog, ctx) => {
-  const ids = new Set(catalog.rules.map(rule => rule.id));
-  if (ids.size !== catalog.rules.length) ctx.addIssue({ code: "custom", message: "Rule IDs must be unique." });
-  for (const scenario of catalog.scenarios) {
-    for (const ruleId of scenario.expectedRuleIds) {
-      if (!ids.has(ruleId)) ctx.addIssue({ code: "custom", message: `Scenario ${scenario.key} references missing rule ${ruleId}.` });
+const catalogSchema = z
+  .object({
+    version: z.string().regex(/^\d+\.\d+\.\d+$/),
+    rules: z.array(ruleSchema).min(1),
+    scenarios: z.array(scenarioSchema).min(1),
+  })
+  .superRefine((catalog, ctx) => {
+    const ids = new Set(catalog.rules.map(rule => rule.id));
+    if (ids.size !== catalog.rules.length)
+      ctx.addIssue({ code: "custom", message: "Rule IDs must be unique." });
+    for (const scenario of catalog.scenarios) {
+      for (const ruleId of scenario.expectedRuleIds) {
+        if (!ids.has(ruleId))
+          ctx.addIssue({
+            code: "custom",
+            message: `Scenario ${scenario.key} references missing rule ${ruleId}.`,
+          });
+      }
     }
-  }
-});
+  });
 
 export type DetectionRule = z.infer<typeof ruleSchema>;
 export type CatalogScenario = z.infer<typeof scenarioSchema>;
@@ -73,20 +84,28 @@ export function getRule(ruleId: string): DetectionRule {
   return rule;
 }
 
-export const ATTACK_MAPPINGS: AttackMapping[] = DETECTION_RULES.flatMap(rule => rule.mitreMappings.map(mapping => ({
-  ruleId: rule.id,
-  techniqueId: mapping.techniqueId,
-  techniqueName: mapping.techniqueName,
-  tactic: mapping.tactic,
-  rationale: rule.summary,
-  caveat: rule.expectedBenignCases.join(" "),
-  referenceUrl: mapping.referenceUrl,
-})));
+export const ATTACK_MAPPINGS: AttackMapping[] = DETECTION_RULES.flatMap(rule =>
+  rule.mitreMappings.map(mapping => ({
+    ruleId: rule.id,
+    techniqueId: mapping.techniqueId,
+    techniqueName: mapping.techniqueName,
+    tactic: mapping.tactic,
+    rationale: rule.summary,
+    caveat: rule.expectedBenignCases.join(" "),
+    referenceUrl: mapping.referenceUrl,
+  }))
+);
 
-export function riskFactorsFor(rule: DetectionRule, details: Record<string, string | number> = {}): RiskFactor[] {
+export function riskFactorsFor(
+  rule: DetectionRule,
+  details: Record<string, string | number> = {}
+): RiskFactor[] {
   return rule.riskScoreFactors.map(factor => ({
     ...factor,
-    rationale: factor.rationale.replaceAll("{{failureCount}}", String(details.failureCount ?? "configured")),
+    rationale: factor.rationale.replaceAll(
+      "{{failureCount}}",
+      String(details.failureCount ?? "configured")
+    ),
   }));
 }
 

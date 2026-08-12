@@ -1,4 +1,11 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -29,11 +36,25 @@ export const socCases = mysqlTable("soc_cases", {
   id: varchar("id", { length: 36 }).primaryKey(),
   scenarioKey: varchar("scenarioKey", { length: 64 }).notNull(),
   title: varchar("title", { length: 240 }).notNull(),
-  severity: mysqlEnum("severity", ["critical", "high", "medium", "low"]).notNull(),
-  disposition: mysqlEnum("disposition", ["open", "benign", "suspicious", "confirmed"]).default("open").notNull(),
+  severity: mysqlEnum("severity", [
+    "critical",
+    "high",
+    "medium",
+    "low",
+  ]).notNull(),
+  disposition: mysqlEnum("disposition", [
+    "open",
+    "benign",
+    "suspicious",
+    "confirmed",
+  ])
+    .default("open")
+    .notNull(),
   riskScore: int("riskScore").notNull(),
   ruleId: varchar("ruleId", { length: 80 }).notNull(),
-  ruleVersion: varchar("ruleVersion", { length: 32 }).default("1.0.0").notNull(),
+  ruleVersion: varchar("ruleVersion", { length: 32 })
+    .default("1.0.0")
+    .notNull(),
   sourceIp: varchar("sourceIp", { length: 45 }).notNull(),
   summary: text("summary").notNull(),
   evidenceJson: text("evidenceJson").notNull(),
@@ -52,7 +73,12 @@ export const socEvents = mysqlTable("soc_events", {
   sourceIp: varchar("sourceIp", { length: 45 }).notNull(),
   username: varchar("username", { length: 120 }),
   target: varchar("target", { length: 160 }).notNull(),
-  eventType: mysqlEnum("eventType", ["auth_failure", "auth_success", "decoy_interaction", "discovery"]).notNull(),
+  eventType: mysqlEnum("eventType", [
+    "auth_failure",
+    "auth_success",
+    "decoy_interaction",
+    "discovery",
+  ]).notNull(),
   command: varchar("command", { length: 255 }),
   message: text("message").notNull(),
   metadataJson: text("metadataJson").notNull(),
@@ -63,7 +89,11 @@ export const caseNotes = mysqlTable("case_notes", {
   id: varchar("id", { length: 36 }).primaryKey(),
   caseId: varchar("caseId", { length: 36 }).notNull(),
   authorName: varchar("authorName", { length: 160 }).notNull(),
-  disposition: mysqlEnum("disposition", ["benign", "suspicious", "confirmed"]).notNull(),
+  disposition: mysqlEnum("disposition", [
+    "benign",
+    "suspicious",
+    "confirmed",
+  ]).notNull(),
   body: text("body").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -71,7 +101,11 @@ export const caseNotes = mysqlTable("case_notes", {
 export const caseDispositionHistory = mysqlTable("case_disposition_history", {
   id: varchar("id", { length: 36 }).primaryKey(),
   caseId: varchar("caseId", { length: 36 }).notNull(),
-  disposition: mysqlEnum("disposition", ["benign", "suspicious", "confirmed"]).notNull(),
+  disposition: mysqlEnum("disposition", [
+    "benign",
+    "suspicious",
+    "confirmed",
+  ]).notNull(),
   note: text("note").notNull(),
   authorName: varchar("authorName", { length: 160 }).notNull(),
   previousHash: varchar("previousHash", { length: 64 }),
@@ -110,6 +144,7 @@ export type InsertSocEvent = typeof socEvents.$inferInsert;
 export type CaseNote = typeof caseNotes.$inferSelect;
 export type InsertCaseNote = typeof caseNotes.$inferInsert;
 export type CaseDispositionHistory = typeof caseDispositionHistory.$inferSelect;
-export type InsertCaseDispositionHistory = typeof caseDispositionHistory.$inferInsert;
+export type InsertCaseDispositionHistory =
+  typeof caseDispositionHistory.$inferInsert;
 export type CaseEvidenceLineage = typeof caseEvidenceLineage.$inferSelect;
 export type InsertCaseEvidenceLineage = typeof caseEvidenceLineage.$inferInsert;

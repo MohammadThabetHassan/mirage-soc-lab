@@ -11,7 +11,14 @@ export function evidenceLineageHash(input: {
   ruleId: string;
   ruleVersion: string;
 }): string {
-  return hash(["evidence", input.previousHash ?? "GENESIS", input.caseId, input.eventId, input.ruleId, input.ruleVersion]);
+  return hash([
+    "evidence",
+    input.previousHash ?? "GENESIS",
+    input.caseId,
+    input.eventId,
+    input.ruleId,
+    input.ruleVersion,
+  ]);
 }
 
 export function dispositionHistoryHash(input: {
@@ -21,13 +28,25 @@ export function dispositionHistoryHash(input: {
   note: string;
   authorName: string;
 }): string {
-  return hash(["disposition", input.previousHash ?? "GENESIS", input.caseId, input.disposition, input.note, input.authorName]);
+  return hash([
+    "disposition",
+    input.previousHash ?? "GENESIS",
+    input.caseId,
+    input.disposition,
+    input.note,
+    input.authorName,
+  ]);
 }
 
-export function verifyHashChain(entries: Array<{ previousHash: string | null; entryHash: string }>, recompute: (previousHash: string | null, index: number) => string): boolean {
+export function verifyHashChain(
+  entries: Array<{ previousHash: string | null; entryHash: string }>,
+  recompute: (previousHash: string | null, index: number) => string
+): boolean {
   let previousHash: string | null = null;
   return entries.every((entry, index) => {
-    const valid = entry.previousHash === previousHash && entry.entryHash === recompute(previousHash, index);
+    const valid =
+      entry.previousHash === previousHash &&
+      entry.entryHash === recompute(previousHash, index);
     previousHash = entry.entryHash;
     return valid;
   });
@@ -60,30 +79,42 @@ export function assessCaseIntegrity(input: {
   evidenceLineage: EvidenceLineageEntry[];
   dispositionHistory: DispositionHistoryEntry[];
 }) {
-  const evidenceValid = verifyHashChain(input.evidenceLineage, (previousHash, index) => {
-    const entry = input.evidenceLineage[index]!;
-    return evidenceLineageHash({
-      previousHash,
-      caseId: entry.caseId,
-      eventId: entry.eventId,
-      ruleId: entry.ruleId,
-      ruleVersion: entry.ruleVersion,
-    });
-  });
-  const dispositionValid = verifyHashChain(input.dispositionHistory, (previousHash, index) => {
-    const entry = input.dispositionHistory[index]!;
-    return dispositionHistoryHash({
-      previousHash,
-      caseId: entry.caseId,
-      disposition: entry.disposition,
-      note: entry.note,
-      authorName: entry.authorName,
-    });
-  });
+  const evidenceValid = verifyHashChain(
+    input.evidenceLineage,
+    (previousHash, index) => {
+      const entry = input.evidenceLineage[index]!;
+      return evidenceLineageHash({
+        previousHash,
+        caseId: entry.caseId,
+        eventId: entry.eventId,
+        ruleId: entry.ruleId,
+        ruleVersion: entry.ruleVersion,
+      });
+    }
+  );
+  const dispositionValid = verifyHashChain(
+    input.dispositionHistory,
+    (previousHash, index) => {
+      const entry = input.dispositionHistory[index]!;
+      return dispositionHistoryHash({
+        previousHash,
+        caseId: entry.caseId,
+        disposition: entry.disposition,
+        note: entry.note,
+        authorName: entry.authorName,
+      });
+    }
+  );
 
   return {
     verified: evidenceValid && dispositionValid,
-    evidence: { verified: evidenceValid, entries: input.evidenceLineage.length },
-    dispositions: { verified: dispositionValid, entries: input.dispositionHistory.length },
+    evidence: {
+      verified: evidenceValid,
+      entries: input.evidenceLineage.length,
+    },
+    dispositions: {
+      verified: dispositionValid,
+      entries: input.dispositionHistory.length,
+    },
   };
 }

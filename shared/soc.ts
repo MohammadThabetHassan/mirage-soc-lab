@@ -1,10 +1,20 @@
-export const EVENT_TYPES = ["auth_failure", "auth_success", "decoy_interaction", "discovery"] as const;
+export const EVENT_TYPES = [
+  "auth_failure",
+  "auth_success",
+  "decoy_interaction",
+  "discovery",
+] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
 export const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 export type Severity = (typeof SEVERITIES)[number];
 
-export const DISPOSITIONS = ["open", "benign", "suspicious", "confirmed"] as const;
+export const DISPOSITIONS = [
+  "open",
+  "benign",
+  "suspicious",
+  "confirmed",
+] as const;
 export type Disposition = (typeof DISPOSITIONS)[number];
 
 export type LabEvent = {

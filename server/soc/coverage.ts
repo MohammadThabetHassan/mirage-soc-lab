@@ -8,11 +8,16 @@ export type ScenarioEvaluation = {
 
 export function buildAttackCoverageMatrix(scenarios: ScenarioEvaluation[]) {
   return DETECTION_RULES.map(rule => {
-    const supportingScenarios = SCENARIOS.filter(scenario => scenario.expectedRuleIds.includes(rule.id));
+    const supportingScenarios = SCENARIOS.filter(scenario =>
+      scenario.expectedRuleIds.includes(rule.id)
+    );
     const scenarioIds = supportingScenarios.map(scenario => scenario.key);
     const observedByScenario = scenarioIds.map(scenarioId => ({
       scenarioId,
-      observed: scenarios.find(result => result.key === scenarioId)?.observedRuleIds.includes(rule.id) ?? false,
+      observed:
+        scenarios
+          .find(result => result.key === scenarioId)
+          ?.observedRuleIds.includes(rule.id) ?? false,
     }));
     const mapping = rule.mitreMappings[0]!;
     const thresholdSummary = Object.entries(rule.threshold)
@@ -30,7 +35,9 @@ export function buildAttackCoverageMatrix(scenarios: ScenarioEvaluation[]) {
       detectionLogic: `${thresholdSummary}; correlation window ${rule.correlationWindowMinutes} minutes.`,
       caveat: rule.expectedBenignCases.join(" "),
       expectedResult: `Detect in ${scenarioIds.join(", ")}.`,
-      currentStatus: observedByScenario.every(result => result.observed) ? "validated" : "gap",
+      currentStatus: observedByScenario.every(result => result.observed)
+        ? "validated"
+        : "gap",
     };
   });
 }

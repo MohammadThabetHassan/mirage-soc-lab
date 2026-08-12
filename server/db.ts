@@ -1,8 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { caseDispositionHistory, caseEvidenceLineage, caseNotes, InsertCaseNote, InsertSocCase, InsertSocEvent, InsertUser, scenarioRuns, socCases, socEvents, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  caseDispositionHistory,
+  caseEvidenceLineage,
+  caseNotes,
+  InsertCaseNote,
+  InsertSocCase,
+  InsertSocEvent,
+  InsertUser,
+  scenarioRuns,
+  socCases,
+  socEvents,
+  users,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
 import { dispositionHistoryHash, evidenceLineageHash } from "./soc/integrity";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -58,8 +70,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -86,7 +98,11 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -97,7 +113,11 @@ export async function getSocSnapshot() {
   const [cases, events, runs] = await Promise.all([
     db.select().from(socCases).orderBy(desc(socCases.updatedAt)).limit(50),
     db.select().from(socEvents).orderBy(desc(socEvents.occurredAt)).limit(80),
-    db.select().from(scenarioRuns).orderBy(desc(scenarioRuns.createdAt)).limit(10),
+    db
+      .select()
+      .from(scenarioRuns)
+      .orderBy(desc(scenarioRuns.createdAt))
+      .limit(10),
   ]);
   return { cases, events, runs };
 }
@@ -105,64 +125,137 @@ export async function getSocSnapshot() {
 export async function getSocCase(caseId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const [item] = await db.select().from(socCases).where(eq(socCases.id, caseId)).limit(1);
+  const [item] = await db
+    .select()
+    .from(socCases)
+    .where(eq(socCases.id, caseId))
+    .limit(1);
   if (!item) return undefined;
   const [notes, events, history, evidenceLineage] = await Promise.all([
-    db.select().from(caseNotes).where(eq(caseNotes.caseId, caseId)).orderBy(desc(caseNotes.createdAt)),
-    db.select().from(socEvents).where(eq(socEvents.caseId, caseId)).orderBy(socEvents.occurredAt),
-    db.select().from(caseDispositionHistory).where(eq(caseDispositionHistory.caseId, caseId)).orderBy(caseDispositionHistory.createdAt),
-    db.select().from(caseEvidenceLineage).where(eq(caseEvidenceLineage.caseId, caseId)).orderBy(caseEvidenceLineage.createdAt),
+    db
+      .select()
+      .from(caseNotes)
+      .where(eq(caseNotes.caseId, caseId))
+      .orderBy(desc(caseNotes.createdAt)),
+    db
+      .select()
+      .from(socEvents)
+      .where(eq(socEvents.caseId, caseId))
+      .orderBy(socEvents.occurredAt),
+    db
+      .select()
+      .from(caseDispositionHistory)
+      .where(eq(caseDispositionHistory.caseId, caseId))
+      .orderBy(caseDispositionHistory.createdAt),
+    db
+      .select()
+      .from(caseEvidenceLineage)
+      .where(eq(caseEvidenceLineage.caseId, caseId))
+      .orderBy(caseEvidenceLineage.createdAt),
   ]);
   return { ...item, notes, events, history, evidenceLineage };
 }
 
 export async function persistScenarioRun(input: {
-  run: { id: string; scenarioKey: string; label: string; eventsGenerated: number; casesGenerated: number; startedAt: Date; finishedAt: Date };
+  run: {
+    id: string;
+    scenarioKey: string;
+    label: string;
+    eventsGenerated: number;
+    casesGenerated: number;
+    startedAt: Date;
+    finishedAt: Date;
+  };
   events: InsertSocEvent[];
   cases: InsertSocCase[];
 }) {
   const db = await getDb();
-  if (!db) throw new Error("Database unavailable. Configure the MIRAGE database before running a scenario.");
+  if (!db)
+    throw new Error(
+      "Database unavailable. Configure the MIRAGE database before running a scenario."
+    );
   await db.insert(scenarioRuns).values({ ...input.run, status: "completed" });
   await db.insert(socCases).values(input.cases);
   const caseByRule = new Map(input.cases.map(item => [item.ruleId, item.id]));
   const eventRows = input.events.map(item => ({
     ...item,
-    caseId: item.eventType === "auth_failure" ? caseByRule.get("repeated-auth-failures") ?? null :
-      item.eventType === "auth_success" ? caseByRule.get("success-after-failure") ?? null :
-      ["decoy_interaction", "discovery"].includes(item.eventType) ? caseByRule.get("multi-stage-sequence") ?? null : null,
+    caseId:
+      item.eventType === "auth_failure"
+        ? (caseByRule.get("repeated-auth-failures") ?? null)
+        : item.eventType === "auth_success"
+          ? (caseByRule.get("success-after-failure") ?? null)
+          : ["decoy_interaction", "discovery"].includes(item.eventType)
+            ? (caseByRule.get("multi-stage-sequence") ?? null)
+            : null,
   }));
   await db.insert(socEvents).values(eventRows);
 
   const lineageRows: Array<typeof caseEvidenceLineage.$inferInsert> = [];
   for (const socCase of input.cases) {
     let previousHash: string | null = null;
-    for (const evidence of eventRows.filter(event => event.caseId === socCase.id)) {
+    for (const evidence of eventRows.filter(
+      event => event.caseId === socCase.id
+    )) {
       const ruleVersion = socCase.ruleVersion ?? "1.0.0";
-      const entryHash = evidenceLineageHash({ previousHash, caseId: socCase.id, eventId: evidence.id, ruleId: socCase.ruleId, ruleVersion });
-      lineageRows.push({ id: randomUUID(), caseId: socCase.id, eventId: evidence.id, ruleId: socCase.ruleId, ruleVersion, previousHash, entryHash });
+      const entryHash = evidenceLineageHash({
+        previousHash,
+        caseId: socCase.id,
+        eventId: evidence.id,
+        ruleId: socCase.ruleId,
+        ruleVersion,
+      });
+      lineageRows.push({
+        id: randomUUID(),
+        caseId: socCase.id,
+        eventId: evidence.id,
+        ruleId: socCase.ruleId,
+        ruleVersion,
+        previousHash,
+        entryHash,
+      });
       previousHash = entryHash;
     }
   }
-  if (lineageRows.length) await db.insert(caseEvidenceLineage).values(lineageRows);
+  if (lineageRows.length)
+    await db.insert(caseEvidenceLineage).values(lineageRows);
 }
 
 export async function persistControlledCowrieEvents(events: InsertSocEvent[]) {
   const db = await getDb();
-  if (!db) throw new Error("Database unavailable. Configure the MIRAGE database before importing controlled Cowrie telemetry.");
+  if (!db)
+    throw new Error(
+      "Database unavailable. Configure the MIRAGE database before importing controlled Cowrie telemetry."
+    );
   if (!events.length) return;
   await db.insert(socEvents).values(events);
 }
 
-export async function dispositionSocCase(input: { caseId: string; disposition: "benign" | "suspicious" | "confirmed"; note: string; authorName: string; noteId: string }) {
+export async function dispositionSocCase(input: {
+  caseId: string;
+  disposition: "benign" | "suspicious" | "confirmed";
+  note: string;
+  authorName: string;
+  noteId: string;
+}) {
   const db = await getDb();
-  if (!db) throw new Error("Database unavailable. Configure the MIRAGE database before changing a case.");
-  const [latestHistory] = await db.select().from(caseDispositionHistory)
+  if (!db)
+    throw new Error(
+      "Database unavailable. Configure the MIRAGE database before changing a case."
+    );
+  const [latestHistory] = await db
+    .select()
+    .from(caseDispositionHistory)
     .where(eq(caseDispositionHistory.caseId, input.caseId))
     .orderBy(desc(caseDispositionHistory.createdAt))
     .limit(1);
   const previousHash = latestHistory?.entryHash ?? null;
-  const entryHash = dispositionHistoryHash({ previousHash, caseId: input.caseId, disposition: input.disposition, note: input.note, authorName: input.authorName });
+  const entryHash = dispositionHistoryHash({
+    previousHash,
+    caseId: input.caseId,
+    disposition: input.disposition,
+    note: input.note,
+    authorName: input.authorName,
+  });
   const note: InsertCaseNote = {
     id: input.noteId,
     caseId: input.caseId,
@@ -181,5 +274,8 @@ export async function dispositionSocCase(input: { caseId: string; disposition: "
     entryHash,
   });
   // This is a current-state projection only; history above is append-only and authoritative.
-  await db.update(socCases).set({ disposition: input.disposition }).where(eq(socCases.id, input.caseId));
+  await db
+    .update(socCases)
+    .set({ disposition: input.disposition })
+    .where(eq(socCases.id, input.caseId));
 }

@@ -120,7 +120,17 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Space Grotesk", sans-serif;
-    background-image: radial-gradient(circle at 20% 0%, oklch(0.31 0.11 260 / 28%), transparent 32rem), radial-gradient(circle at 85% 5%, oklch(0.35 0.12 315 / 18%), transparent 24rem);
+    background-image:
+      radial-gradient(
+        circle at 20% 0%,
+        oklch(0.31 0.11 260 / 28%),
+        transparent 32rem
+      ),
+      radial-gradient(
+        circle at 85% 5%,
+        oklch(0.35 0.12 315 / 18%),
+        transparent 24rem
+      );
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -137,14 +147,22 @@
 
 @layer components {
   .cyber-grid {
-    background-image: linear-gradient(oklch(0.7 0.09 205 / 8%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.7 0.09 205 / 8%) 1px, transparent 1px);
+    background-image:
+      linear-gradient(oklch(0.7 0.09 205 / 8%) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.7 0.09 205 / 8%) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
   .neon-panel {
     border: 1px solid oklch(0.68 0.09 205 / 20%);
-    background: linear-gradient(145deg, oklch(0.2 0.035 250 / 92%), oklch(0.16 0.028 250 / 92%));
-    box-shadow: inset 0 1px 0 oklch(0.82 0.1 200 / 8%), 0 16px 40px oklch(0.08 0.03 260 / 35%);
+    background: linear-gradient(
+      145deg,
+      oklch(0.2 0.035 250 / 92%),
+      oklch(0.16 0.028 250 / 92%)
+    );
+    box-shadow:
+      inset 0 1px 0 oklch(0.82 0.1 200 / 8%),
+      0 16px 40px oklch(0.08 0.03 260 / 35%);
   }
 
   .neon-label {

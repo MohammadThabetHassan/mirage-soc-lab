@@ -8,13 +8,38 @@
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
       "threshold": { "minimumFailures": 5 },
       "correlationWindowMinutes": 10,
-      "mitreMappings": [{ "techniqueId": "T1110", "techniqueName": "Brute Force", "tactic": "Credential Access", "referenceUrl": "https://attack.mitre.org/techniques/T1110/" }],
-      "expectedBenignCases": ["Scheduled service retries and users repeatedly entering an incorrect password."],
-      "severityGuidance": { "severity": "high", "riskScore": 72, "rationale": "A concentrated burst against a lab decoy warrants analyst review." },
+      "mitreMappings": [
+        {
+          "techniqueId": "T1110",
+          "techniqueName": "Brute Force",
+          "tactic": "Credential Access",
+          "referenceUrl": "https://attack.mitre.org/techniques/T1110/"
+        }
+      ],
+      "expectedBenignCases": [
+        "Scheduled service retries and users repeatedly entering an incorrect password."
+      ],
+      "severityGuidance": {
+        "severity": "high",
+        "riskScore": 72,
+        "rationale": "A concentrated burst against a lab decoy warrants analyst review."
+      },
       "riskScoreFactors": [
-        { "label": "Failed attempts", "points": 40, "rationale": "Failure count meets or exceeds the configured threshold." },
-        { "label": "Source concentration", "points": 20, "rationale": "Events are correlated to one source IP." },
-        { "label": "Privileged targeting", "points": 12, "rationale": "The event set includes a root account candidate." }
+        {
+          "label": "Failed attempts",
+          "points": 40,
+          "rationale": "Failure count meets or exceeds the configured threshold."
+        },
+        {
+          "label": "Source concentration",
+          "points": 20,
+          "rationale": "Events are correlated to one source IP."
+        },
+        {
+          "label": "Privileged targeting",
+          "points": 12,
+          "rationale": "The event set includes a root account candidate."
+        }
       ]
     },
     {
@@ -24,13 +49,38 @@
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
       "threshold": { "minimumFailures": 3 },
       "correlationWindowMinutes": 15,
-      "mitreMappings": [{ "techniqueId": "T1078", "techniqueName": "Valid Accounts", "tactic": "Defense Evasion", "referenceUrl": "https://attack.mitre.org/techniques/T1078/" }],
-      "expectedBenignCases": ["A legitimate user can make several mistakes before successful authentication."],
-      "severityGuidance": { "severity": "high", "riskScore": 81, "rationale": "Success after a concentrated failure sequence requires context." },
+      "mitreMappings": [
+        {
+          "techniqueId": "T1078",
+          "techniqueName": "Valid Accounts",
+          "tactic": "Defense Evasion",
+          "referenceUrl": "https://attack.mitre.org/techniques/T1078/"
+        }
+      ],
+      "expectedBenignCases": [
+        "A legitimate user can make several mistakes before successful authentication."
+      ],
+      "severityGuidance": {
+        "severity": "high",
+        "riskScore": 81,
+        "rationale": "Success after a concentrated failure sequence requires context."
+      },
       "riskScoreFactors": [
-        { "label": "Prior failed attempts", "points": 35, "rationale": "Previous failures were linked to the same source." },
-        { "label": "Authentication success", "points": 30, "rationale": "A login success followed the failure sequence." },
-        { "label": "Temporal proximity", "points": 16, "rationale": "The transition occurred within the configured correlation window." }
+        {
+          "label": "Prior failed attempts",
+          "points": 35,
+          "rationale": "Previous failures were linked to the same source."
+        },
+        {
+          "label": "Authentication success",
+          "points": 30,
+          "rationale": "A login success followed the failure sequence."
+        },
+        {
+          "label": "Temporal proximity",
+          "points": 16,
+          "rationale": "The transition occurred within the configured correlation window."
+        }
       ]
     },
     {
@@ -38,22 +88,80 @@
       "title": "Multi-stage decoy engagement and discovery",
       "summary": "Correlated credential activity, decoy engagement, and discovery-like behavior formed a complete lab attack story.",
       "inputFields": ["eventType", "sourceIp", "occurredAt", "command"],
-      "threshold": { "minimumFailures": 3, "minimumDiscoveryEvents": 2, "requiresDecoyInteraction": true, "requiresAuthSuccess": true },
+      "threshold": {
+        "minimumFailures": 3,
+        "minimumDiscoveryEvents": 2,
+        "requiresDecoyInteraction": true,
+        "requiresAuthSuccess": true
+      },
       "correlationWindowMinutes": 20,
-      "mitreMappings": [{ "techniqueId": "T1087", "techniqueName": "Account Discovery", "tactic": "Discovery", "referenceUrl": "https://attack.mitre.org/techniques/T1087/" }],
-      "expectedBenignCases": ["Individual inventory commands without correlated credential activity should not trigger this rule."],
-      "severityGuidance": { "severity": "critical", "riskScore": 94, "rationale": "A full credential-to-decoy-to-discovery sequence is the highest-risk lab story." },
+      "mitreMappings": [
+        {
+          "techniqueId": "T1087",
+          "techniqueName": "Account Discovery",
+          "tactic": "Discovery",
+          "referenceUrl": "https://attack.mitre.org/techniques/T1087/"
+        }
+      ],
+      "expectedBenignCases": [
+        "Individual inventory commands without correlated credential activity should not trigger this rule."
+      ],
+      "severityGuidance": {
+        "severity": "critical",
+        "riskScore": 94,
+        "rationale": "A full credential-to-decoy-to-discovery sequence is the highest-risk lab story."
+      },
       "riskScoreFactors": [
-        { "label": "Credential activity", "points": 28, "rationale": "The sequence begins with repeated authentication failures and a later success." },
-        { "label": "Decoy engagement", "points": 34, "rationale": "The source opened a controlled decoy session." },
-        { "label": "Discovery sequence", "points": 32, "rationale": "Discovery-like command events followed the session." }
+        {
+          "label": "Credential activity",
+          "points": 28,
+          "rationale": "The sequence begins with repeated authentication failures and a later success."
+        },
+        {
+          "label": "Decoy engagement",
+          "points": 34,
+          "rationale": "The source opened a controlled decoy session."
+        },
+        {
+          "label": "Discovery sequence",
+          "points": 32,
+          "rationale": "Discovery-like command events followed the session."
+        }
       ]
     }
   ],
   "scenarios": [
-    { "key": "full-pipeline", "label": "Full pipeline story", "description": "Brute-force attempts progress to decoy interaction and discovery behavior.", "classification": "known-positive", "expectedRuleIds": ["repeated-auth-failures", "success-after-failure", "multi-stage-sequence"] },
-    { "key": "credential-probe", "label": "Credential probe", "description": "Authentication failures followed by a successful login.", "classification": "known-positive", "expectedRuleIds": ["repeated-auth-failures", "success-after-failure"] },
-    { "key": "benign-admin", "label": "Benign admin activity", "description": "Normal administrative access that should not create a case.", "classification": "known-benign", "expectedRuleIds": [] },
-    { "key": "threshold-boundary", "label": "Threshold boundary", "description": "Exactly one fewer authentication failure than the repeated-failure threshold.", "classification": "edge-case", "expectedRuleIds": [] }
+    {
+      "key": "full-pipeline",
+      "label": "Full pipeline story",
+      "description": "Brute-force attempts progress to decoy interaction and discovery behavior.",
+      "classification": "known-positive",
+      "expectedRuleIds": [
+        "repeated-auth-failures",
+        "success-after-failure",
+        "multi-stage-sequence"
+      ]
+    },
+    {
+      "key": "credential-probe",
+      "label": "Credential probe",
+      "description": "Authentication failures followed by a successful login.",
+      "classification": "known-positive",
+      "expectedRuleIds": ["repeated-auth-failures", "success-after-failure"]
+    },
+    {
+      "key": "benign-admin",
+      "label": "Benign admin activity",
+      "description": "Normal administrative access that should not create a case.",
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "threshold-boundary",
+      "label": "Threshold boundary",
+      "description": "Exactly one fewer authentication failure than the repeated-failure threshold.",
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    }
   ]
 }

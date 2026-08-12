@@ -22,8 +22,16 @@ describe("MIRAGE correlation engine", () => {
     expect(evaluation.coverage).toBe(100);
     expect(evaluation.falsePositiveRate).toBe(0);
     expect(evaluation.scenarios).toHaveLength(4);
-    expect(evaluation.classMetrics.map(item => item.classification)).toEqual(["known-positive", "known-benign", "edge-case"]);
-    expect(evaluation.coverageMatrix.every(item => item.currentStatus === "validated")).toBe(true);
+    expect(evaluation.classMetrics.map(item => item.classification)).toEqual([
+      "known-positive",
+      "known-benign",
+      "edge-case",
+    ]);
+    expect(
+      evaluation.coverageMatrix.every(
+        item => item.currentStatus === "validated"
+      )
+    ).toBe(true);
   });
 
   it("does not detect a static edge-case corpus entry one event below the configured threshold", () => {
@@ -44,21 +52,33 @@ describe("MIRAGE correlation engine", () => {
     const cases = detectCases(generateScenario("full-pipeline"));
     expect(cases).toHaveLength(3);
     cases.forEach(item => {
-      expect(item.riskBreakdown.reduce((total, factor) => total + factor.points, 0)).toBe(item.riskScore);
-      expect(item.riskBreakdown.every(factor => factor.rationale.length > 0)).toBe(true);
+      expect(
+        item.riskBreakdown.reduce((total, factor) => total + factor.points, 0)
+      ).toBe(item.riskScore);
+      expect(
+        item.riskBreakdown.every(factor => factor.rationale.length > 0)
+      ).toBe(true);
     });
   });
 
   it("publishes a complete ATT&CK context record for every detection rule", () => {
-    const ruleIds = ["repeated-auth-failures", "success-after-failure", "multi-stage-sequence"];
+    const ruleIds = [
+      "repeated-auth-failures",
+      "success-after-failure",
+      "multi-stage-sequence",
+    ];
     expect(ATTACK_MAPPINGS.map(item => item.ruleId)).toEqual(ruleIds);
     ATTACK_MAPPINGS.forEach(item => {
       expect(item.techniqueId).toMatch(/^T\d{4}$/);
       expect(item.tactic.length).toBeGreaterThan(0);
       expect(item.rationale.length).toBeGreaterThan(20);
       expect(item.caveat.length).toBeGreaterThan(20);
-      expect(item.referenceUrl).toMatch(/^https:\/\/attack\.mitre\.org\/techniques\//);
-      const coverage = evaluateDefinitions().coverageMatrix.find(entry => entry.ruleId === item.ruleId);
+      expect(item.referenceUrl).toMatch(
+        /^https:\/\/attack\.mitre\.org\/techniques\//
+      );
+      const coverage = evaluateDefinitions().coverageMatrix.find(
+        entry => entry.ruleId === item.ruleId
+      );
       expect(coverage?.evidenceField).toBeTruthy();
       expect(coverage?.testCaseIds.length).toBeGreaterThan(0);
     });
