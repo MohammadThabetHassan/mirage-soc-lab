@@ -12,6 +12,43 @@ test.describe("unauthenticated application boundary", () => {
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
 
+  test("provides a labeled main region and reachable sign-in control", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const main = page.getByRole("main");
+    const signIn = page.getByRole("button", { name: "Sign in" });
+    await expect(main).toHaveAttribute("aria-labelledby", "sign-in-gate-title");
+    await expect(signIn).toBeVisible();
+
+    await page.keyboard.press("Tab");
+    await expect(signIn).toBeFocused();
+
+    const invalidLabels = await page
+      .locator("[aria-labelledby]")
+      .evaluateAll(elements =>
+        elements
+          .map(element => element.getAttribute("aria-labelledby"))
+          .filter(
+            (value): value is string =>
+              Boolean(value) &&
+              value.split(/\\s+/).some(id => !document.getElementById(id))
+          )
+      );
+    expect(invalidLabels).toEqual([]);
+
+    const unnamedControls = await page.locator("button, a[href]").evaluateAll(
+      elements =>
+        elements.filter(element => {
+          const label = element.getAttribute("aria-label");
+          const text = element.textContent?.trim();
+          return !label && !text;
+        }).length
+    );
+    expect(unnamedControls).toBe(0);
+  });
+
   test("does not introduce horizontal overflow at the configured viewport", async ({
     page,
   }) => {

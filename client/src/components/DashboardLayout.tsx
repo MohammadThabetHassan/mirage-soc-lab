@@ -64,10 +64,16 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <main
+        className="flex items-center justify-center min-h-screen"
+        aria-labelledby="sign-in-gate-title"
+      >
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
+            <h1
+              id="sign-in-gate-title"
+              className="text-2xl font-semibold tracking-tight text-center"
+            >
               Sign in to continue
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
@@ -83,7 +89,7 @@ export default function DashboardLayout({
             Sign in
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 

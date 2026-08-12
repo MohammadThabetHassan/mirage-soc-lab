@@ -1,12 +1,14 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Route, Switch } from "wouter";
 import DashboardLayout from "./components/DashboardLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Evaluation from "./pages/Evaluation";
-import Home from "./pages/Home";
+
+const Evaluation = lazy(() => import("./pages/Evaluation"));
+const Home = lazy(() => import("./pages/Home"));
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -32,7 +34,19 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <DashboardLayout>
-            <Router />
+            <Suspense
+              fallback={
+                <main
+                  className="flex min-h-screen items-center justify-center"
+                  aria-busy="true"
+                  aria-live="polite"
+                >
+                  Loading MIRAGE workspace…
+                </main>
+              }
+            >
+              <Router />
+            </Suspense>
           </DashboardLayout>
           <Toaster theme="dark" richColors />
         </TooltipProvider>
