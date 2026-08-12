@@ -25,4 +25,63 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const socCases = mysqlTable("soc_cases", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  scenarioKey: varchar("scenarioKey", { length: 64 }).notNull(),
+  title: varchar("title", { length: 240 }).notNull(),
+  severity: mysqlEnum("severity", ["critical", "high", "medium", "low"]).notNull(),
+  disposition: mysqlEnum("disposition", ["open", "benign", "suspicious", "confirmed"]).default("open").notNull(),
+  riskScore: int("riskScore").notNull(),
+  ruleId: varchar("ruleId", { length: 80 }).notNull(),
+  sourceIp: varchar("sourceIp", { length: 45 }).notNull(),
+  summary: text("summary").notNull(),
+  evidenceJson: text("evidenceJson").notNull(),
+  riskBreakdownJson: text("riskBreakdownJson").notNull(),
+  startedAt: timestamp("startedAt").notNull(),
+  lastSeenAt: timestamp("lastSeenAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const socEvents = mysqlTable("soc_events", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  caseId: varchar("caseId", { length: 36 }),
+  scenarioKey: varchar("scenarioKey", { length: 64 }).notNull(),
+  occurredAt: timestamp("occurredAt").notNull(),
+  sourceIp: varchar("sourceIp", { length: 45 }).notNull(),
+  username: varchar("username", { length: 120 }),
+  target: varchar("target", { length: 160 }).notNull(),
+  eventType: mysqlEnum("eventType", ["auth_failure", "auth_success", "decoy_interaction", "discovery"]).notNull(),
+  command: varchar("command", { length: 255 }),
+  message: text("message").notNull(),
+  metadataJson: text("metadataJson").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const caseNotes = mysqlTable("case_notes", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  caseId: varchar("caseId", { length: 36 }).notNull(),
+  authorName: varchar("authorName", { length: 160 }).notNull(),
+  disposition: mysqlEnum("disposition", ["benign", "suspicious", "confirmed"]).notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const scenarioRuns = mysqlTable("scenario_runs", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  scenarioKey: varchar("scenarioKey", { length: 64 }).notNull(),
+  label: varchar("label", { length: 160 }).notNull(),
+  status: mysqlEnum("status", ["completed"]).default("completed").notNull(),
+  eventsGenerated: int("eventsGenerated").notNull(),
+  casesGenerated: int("casesGenerated").notNull(),
+  startedAt: timestamp("startedAt").notNull(),
+  finishedAt: timestamp("finishedAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SocCase = typeof socCases.$inferSelect;
+export type InsertSocCase = typeof socCases.$inferInsert;
+export type SocEvent = typeof socEvents.$inferSelect;
+export type InsertSocEvent = typeof socEvents.$inferInsert;
+export type CaseNote = typeof caseNotes.$inferSelect;
+export type InsertCaseNote = typeof caseNotes.$inferInsert;

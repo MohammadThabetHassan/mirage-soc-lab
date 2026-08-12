@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { caseNotes, InsertCaseNote, InsertSocCase, InsertSocEvent, InsertUser, scenarioRuns, socCases, socEvents, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,55 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getSocSnapshot() {
+  const db = await getDb();
+  if (!db) return { cases: [], events: [], runs: [] };
+  const [cases, events, runs] = await Promise.all([
+    db.select().from(socCases).orderBy(desc(socCases.updatedAt)).limit(50),
+    db.select().from(socEvents).orderBy(desc(socEvents.occurredAt)).limit(80),
+    db.select().from(scenarioRuns).orderBy(desc(scenarioRuns.createdAt)).limit(10),
+  ]);
+  return { cases, events, runs };
+}
+
+export async function getSocCase(caseId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [item] = await db.select().from(socCases).where(eq(socCases.id, caseId)).limit(1);
+  if (!item) return undefined;
+  const notes = await db.select().from(caseNotes).where(eq(caseNotes.caseId, caseId)).orderBy(desc(caseNotes.createdAt));
+  const events = await db.select().from(socEvents).where(eq(socEvents.caseId, caseId)).orderBy(socEvents.occurredAt);
+  return { ...item, notes, events };
+}
+
+export async function persistScenarioRun(input: {
+  run: { id: string; scenarioKey: string; label: string; eventsGenerated: number; casesGenerated: number; startedAt: Date; finishedAt: Date };
+  events: InsertSocEvent[];
+  cases: InsertSocCase[];
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable. Configure the MIRAGE database before running a scenario.");
+  await db.insert(scenarioRuns).values({ ...input.run, status: "completed" });
+  await db.insert(socCases).values(input.cases);
+  const caseByRule = new Map(input.cases.map(item => [item.ruleId, item.id]));
+  await db.insert(socEvents).values(input.events.map(item => ({
+    ...item,
+    caseId: item.eventType === "auth_failure" ? caseByRule.get("repeated-auth-failures") ?? null :
+      item.eventType === "auth_success" ? caseByRule.get("success-after-failure") ?? null :
+      ["decoy_interaction", "discovery"].includes(item.eventType) ? caseByRule.get("multi-stage-sequence") ?? null : null,
+  })));
+}
+
+export async function dispositionSocCase(input: { caseId: string; disposition: "benign" | "suspicious" | "confirmed"; note: string; authorName: string; noteId: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable. Configure the MIRAGE database before changing a case.");
+  await db.update(socCases).set({ disposition: input.disposition }).where(eq(socCases.id, input.caseId));
+  const note: InsertCaseNote = {
+    id: input.noteId,
+    caseId: input.caseId,
+    disposition: input.disposition,
+    body: input.note,
+    authorName: input.authorName,
+  };
+  await db.insert(caseNotes).values(note);
+}
