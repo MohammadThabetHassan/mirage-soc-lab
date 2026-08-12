@@ -15,6 +15,13 @@
       "when": 1786569002342,
       "tag": "0001_red_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786569300000,
+      "tag": "0002_append_only_evidence_lineage",
+      "breakpoints": true
     }
   ]
 }

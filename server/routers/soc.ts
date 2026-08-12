@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { dispositionSocCase, getSocCase, getSocSnapshot, persistScenarioRun } from "../db";
+import { dispositionSocCase, getSocCase, getSocSnapshot, persistControlledCowrieEvents, persistScenarioRun } from "../db";
+import { importControlledCowrieJson } from "../soc/cowrie";
 import { protectedProcedure, router } from "../_core/trpc";
-import { ATTACK_MAPPINGS, SCENARIOS, type ScenarioKey } from "../soc/catalog";
+import { ATTACK_MAPPINGS, DETECTION_CATALOG, SCENARIOS, type ScenarioKey } from "../soc/catalog";
 import { detectCases, evaluateDefinitions, generateScenario } from "../soc/engine";
 
 const scenarioSchema = z.enum(["full-pipeline", "credential-probe", "benign-admin"]);
@@ -10,6 +11,32 @@ const scenarioSchema = z.enum(["full-pipeline", "credential-probe", "benign-admi
 export const socRouter = router({
   snapshot: protectedProcedure.query(() => getSocSnapshot()),
   attackMappings: protectedProcedure.query(() => ATTACK_MAPPINGS),
+  detectionCatalog: protectedProcedure.query(() => DETECTION_CATALOG),
+  importControlledCowrie: protectedProcedure.input(z.object({
+    /** Local, redacted JSON-lines payload copied from the documented lab fixture flow. */
+    jsonLines: z.string().min(1).max(2_000_000),
+    scenarioKey: z.string().trim().min(3).max(64).default("controlled-cowrie-fixture"),
+  })).mutation(async ({ input }) => {
+    const result = importControlledCowrieJson(input.jsonLines, input.scenarioKey);
+    await persistControlledCowrieEvents(result.imported.map(event => ({
+      id: event.id,
+      scenarioKey: event.scenarioKey,
+      occurredAt: event.occurredAt,
+      sourceIp: event.sourceIp,
+      username: event.username ?? null,
+      target: event.target,
+      eventType: event.eventType,
+      command: event.command ?? null,
+      message: event.message,
+      metadataJson: JSON.stringify(event.metadata),
+    })));
+    return {
+      importedCount: result.imported.length,
+      rejected: result.rejected,
+      acceptedEventIds: result.acceptedEventIds,
+      notice: "Raw Cowrie payload, passwords, tty logs, and transferred-file content were not stored.",
+    };
+  }),
   evaluation: protectedProcedure.query(() => evaluateDefinitions()),
   getCase: protectedProcedure.input(z.object({ caseId: z.string().uuid() })).query(({ input }) => getSocCase(input.caseId)),
   runScenario: protectedProcedure.input(z.object({ scenarioKey: scenarioSchema })).mutation(async ({ input }) => {
@@ -36,6 +63,7 @@ export const socRouter = router({
         disposition: "open",
         riskScore: item.riskScore,
         ruleId: item.ruleId,
+        ruleVersion: DETECTION_CATALOG.version,
         sourceIp: item.sourceIp,
         summary: item.summary,
         evidenceJson: JSON.stringify(item.evidence),
