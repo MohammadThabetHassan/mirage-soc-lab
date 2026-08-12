@@ -70,6 +70,12 @@ describe("authenticated analyst journey", () => {
       runs: [],
     });
 
+    await expect(
+      caller.soc.importControlledCowrie({
+        jsonLines: '{"eventid":"cowrie.session.connect"}',
+      })
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+
     const replay = await caller.soc.runScenario({
       scenarioKey: "full-pipeline",
     });

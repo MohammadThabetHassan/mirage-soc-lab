@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   dispositionSocCase,
@@ -8,7 +9,7 @@ import {
   persistScenarioRun,
 } from "../db";
 import { importControlledCowrieJson } from "../soc/cowrie";
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import {
   ATTACK_MAPPINGS,
   DETECTION_CATALOG,
@@ -21,6 +22,10 @@ import {
   generateScenario,
 } from "../soc/engine";
 import { assessCaseIntegrity } from "../soc/integrity";
+import {
+  createSlidingWindowRateLimiter,
+  type RateLimitPolicy,
+} from "../soc/rateLimit";
 
 const scenarioSchema = z.enum([
   "full-pipeline",
@@ -28,11 +33,34 @@ const scenarioSchema = z.enum([
   "benign-admin",
 ]);
 
+const actionLimiter = createSlidingWindowRateLimiter();
+const ACTION_POLICIES = {
+  controlledImport: { maxRequests: 6, windowMs: 60_000 },
+  scenarioReplay: { maxRequests: 12, windowMs: 60_000 },
+  disposition: { maxRequests: 20, windowMs: 60_000 },
+} as const satisfies Record<string, RateLimitPolicy>;
+
+function enforceActionRateLimit(
+  userId: number,
+  action: keyof typeof ACTION_POLICIES
+) {
+  const result = actionLimiter.consume(
+    `analyst:${userId}:${action}`,
+    ACTION_POLICIES[action]
+  );
+  if (!result.allowed) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: `Rate limit reached. Try again in ${Math.ceil(result.retryAfterMs / 1_000)} seconds.`,
+    });
+  }
+}
+
 export const socRouter = router({
   snapshot: protectedProcedure.query(() => getSocSnapshot()),
   attackMappings: protectedProcedure.query(() => ATTACK_MAPPINGS),
   detectionCatalog: protectedProcedure.query(() => DETECTION_CATALOG),
-  importControlledCowrie: protectedProcedure
+  importControlledCowrie: adminProcedure
     .input(
       z.object({
         /** Local, redacted JSON-lines payload copied from the documented lab fixture flow. */
@@ -45,7 +73,8 @@ export const socRouter = router({
           .default("controlled-cowrie-fixture"),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      enforceActionRateLimit(ctx.user.id, "controlledImport");
       const result = importControlledCowrieJson(
         input.jsonLines,
         input.scenarioKey
@@ -97,7 +126,8 @@ export const socRouter = router({
     }),
   runScenario: protectedProcedure
     .input(z.object({ scenarioKey: scenarioSchema }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      enforceActionRateLimit(ctx.user.id, "scenarioReplay");
       const scenario = SCENARIOS.find(item => item.key === input.scenarioKey);
       const events = generateScenario(input.scenarioKey as ScenarioKey);
       const cases = detectCases(events);
@@ -157,6 +187,7 @@ export const socRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      enforceActionRateLimit(ctx.user.id, "disposition");
       await dispositionSocCase({
         ...input,
         noteId: randomUUID(),
