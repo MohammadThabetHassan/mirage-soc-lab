@@ -5,6 +5,7 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import { initializeOptionalAnalytics } from "./analytics";
 import { startLogin } from "./const";
 import "./index.css";
 
@@ -71,6 +72,8 @@ const trpcClient = trpc.createClient({
     }),
   ],
 });
+
+initializeOptionalAnalytics();
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>

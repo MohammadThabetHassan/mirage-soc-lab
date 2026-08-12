@@ -15,14 +15,16 @@ import { appRouter } from "../routers";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function authenticatedContext(): TrpcContext {
+function authenticatedContext(
+  role: AuthenticatedUser["role"] = "user"
+): TrpcContext {
   const user: AuthenticatedUser = {
     id: 7,
     openId: "e2e-analyst",
     email: "analyst@example.test",
     name: "E2E Analyst",
     loginMethod: "test",
-    role: "user",
+    role,
     createdAt: new Date("2026-08-12T09:00:00.000Z"),
     updatedAt: new Date("2026-08-12T09:00:00.000Z"),
     lastSignedIn: new Date("2026-08-12T09:00:00.000Z"),
@@ -52,6 +54,15 @@ describe("authenticated analyst journey", () => {
     });
     dbMocks.persistScenarioRun.mockResolvedValue(undefined);
     dbMocks.dispositionSocCase.mockResolvedValue(undefined);
+  });
+
+  it("allows an administrator to access the controlled telemetry import boundary", async () => {
+    const admin = appRouter.createCaller(authenticatedContext("admin"));
+    await expect(
+      admin.soc.importControlledCowrie({
+        jsonLines: '{"eventid":"cowrie.login.failed"}',
+      })
+    ).resolves.toMatchObject({ importedCount: 0 });
   });
 
   it("requires sign-in and supports replay, selection, note disposition, and evaluation", async () => {
