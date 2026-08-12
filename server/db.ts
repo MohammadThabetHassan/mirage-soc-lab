@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   caseDispositionHistory,
@@ -30,6 +30,25 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+/** Executes a minimal dependency probe for readiness checks without returning DB details. */
+export async function isDatabaseReachable(): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  try {
+    await db.execute(sql`SELECT 1`);
+    return true;
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        event: "database_readiness_probe_failed",
+        errorType: error instanceof Error ? error.name : "unknown",
+      })
+    );
+    return false;
+  }
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
