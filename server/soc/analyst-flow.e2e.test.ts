@@ -59,6 +59,12 @@ describe("authenticated analyst journey", () => {
 
     const caseId = "11111111-1111-4111-8111-111111111111";
     await expect(caller.soc.getCase({ caseId })).resolves.toMatchObject({ id: caseId, ruleVersion: "1.0.0" });
+    await expect(caller.soc.verifyCaseIntegrity({ caseId })).resolves.toEqual({
+      found: true,
+      verified: true,
+      evidence: { verified: true, entries: 0 },
+      dispositions: { verified: true, entries: 0 },
+    });
 
     await expect(caller.soc.dispositionCase({ caseId, disposition: "confirmed", note: "Validated through the controlled analyst-flow test." })).resolves.toEqual({ success: true });
     expect(dbMocks.dispositionSocCase).toHaveBeenCalledWith(expect.objectContaining({

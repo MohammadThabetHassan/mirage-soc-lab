@@ -5,6 +5,7 @@ import { importControlledCowrieJson } from "../soc/cowrie";
 import { protectedProcedure, router } from "../_core/trpc";
 import { ATTACK_MAPPINGS, DETECTION_CATALOG, SCENARIOS, type ScenarioKey } from "../soc/catalog";
 import { detectCases, evaluateDefinitions, generateScenario } from "../soc/engine";
+import { assessCaseIntegrity } from "../soc/integrity";
 
 const scenarioSchema = z.enum(["full-pipeline", "credential-probe", "benign-admin"]);
 
@@ -39,6 +40,17 @@ export const socRouter = router({
   }),
   evaluation: protectedProcedure.query(() => evaluateDefinitions()),
   getCase: protectedProcedure.input(z.object({ caseId: z.string().uuid() })).query(({ input }) => getSocCase(input.caseId)),
+  verifyCaseIntegrity: protectedProcedure.input(z.object({ caseId: z.string().uuid() })).query(async ({ input }) => {
+    const item = await getSocCase(input.caseId);
+    if (!item) return { found: false, verified: false, evidence: { verified: false, entries: 0 }, dispositions: { verified: false, entries: 0 } };
+    return {
+      found: true,
+      ...assessCaseIntegrity({
+        evidenceLineage: item.evidenceLineage,
+        dispositionHistory: item.history,
+      }),
+    };
+  }),
   runScenario: protectedProcedure.input(z.object({ scenarioKey: scenarioSchema })).mutation(async ({ input }) => {
     const scenario = SCENARIOS.find(item => item.key === input.scenarioKey);
     const events = generateScenario(input.scenarioKey as ScenarioKey);

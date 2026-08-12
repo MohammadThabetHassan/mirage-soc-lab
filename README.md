@@ -54,6 +54,12 @@ The fixture corpus at `server/soc/fixtures/controlled-cowrie.ndjson` is determin
 
 For a contained Docker demonstration, merge `docker-compose.cowrie-lab.yml` into the environment-specific MIRAGE Compose configuration and start the `cowrie-lab` profile. Its network is marked `internal: true` and publishes no Cowrie port. Supply a local authenticated import endpoint and token through `MIRAGE_IMPORT_URL` and `MIRAGE_IMPORT_TOKEN`; no public listener is part of this profile.
 
+## Case integrity verification
+
+Every generated case records append-only evidence links and analyst disposition entries. Each link extends a SHA-256 hash chain that includes the case identifier, linked event or decision data, and, for evidence, the active detection-rule version. The protected `soc.verifyCaseIntegrity` operation recomputes both chains without modifying their stored records.
+
+The case view reports the verification result together with evidence-link and analyst-decision counts. A failed or unavailable check is an **analyst review signal**: it does not alter a disposition and should be investigated through the immutable history and evidence-lineage panels.
+
 ## ATT&CK References
 
 - [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/)

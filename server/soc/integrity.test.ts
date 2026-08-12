@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dispositionHistoryHash, evidenceLineageHash, verifyHashChain } from "./integrity";
+import { assessCaseIntegrity, dispositionHistoryHash, evidenceLineageHash, verifyHashChain } from "./integrity";
 
 describe("case evidence integrity", () => {
   it("builds a verifiable append-only evidence chain tied to rule version and event IDs", () => {
@@ -15,6 +15,23 @@ describe("case evidence integrity", () => {
       ruleVersion: "1.0.0",
     }))).toBe(true);
     expect(evidenceLineageHash({ previousHash: first, caseId: "case-1", eventId: "event-2", ruleId: "repeated-auth-failures", ruleVersion: "2.0.0" })).not.toBe(second);
+  });
+
+  it("reports a verified case only when both evidence and disposition chains are intact", () => {
+    const evidenceHash = evidenceLineageHash({ previousHash: null, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" });
+    const dispositionHash = dispositionHistoryHash({ previousHash: null, caseId: "case-1", disposition: "suspicious", note: "Review requested", authorName: "Analyst A" });
+    const result = assessCaseIntegrity({
+      evidenceLineage: [{ previousHash: null, entryHash: evidenceHash, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" }],
+      dispositionHistory: [{ previousHash: null, entryHash: dispositionHash, caseId: "case-1", disposition: "suspicious", note: "Review requested", authorName: "Analyst A" }],
+    });
+    expect(result).toEqual({ verified: true, evidence: { verified: true, entries: 1 }, dispositions: { verified: true, entries: 1 } });
+
+    const tampered = assessCaseIntegrity({
+      evidenceLineage: [{ previousHash: null, entryHash: evidenceHash, caseId: "case-1", eventId: "event-1", ruleId: "repeated-auth-failures", ruleVersion: "1.0.0" }],
+      dispositionHistory: [{ previousHash: null, entryHash: dispositionHash, caseId: "case-1", disposition: "confirmed", note: "Review requested", authorName: "Analyst A" }],
+    });
+    expect(tampered.verified).toBe(false);
+    expect(tampered.dispositions.verified).toBe(false);
   });
 
   it("detects a tampered disposition-history entry", () => {
