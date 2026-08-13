@@ -40,7 +40,7 @@ For a database-backed local run, create an uncommitted `.env` file with your own
 3. Open a case and compare the evidence timeline with the rule’s ATT&CK mapping, telemetry requirements, triage questions, and caveat.
 4. Add a disposition or note, then use the integrity view to check the stored evidence and analyst-history chains.
 5. Open **Evaluation** to compare every scenario with its expected result. Benign and boundary scenarios should stay quiet.
-6. Open **Exercises** for short, controlled evidence-reading practice. Exercise responses are evaluated in memory and are not stored as user scores or notes.
+6. Open **Exercises** for short, controlled evidence-reading practice. Each two-decision exercise uses a visible 100-point rubric: 50 points per evidence-aligned decision. Responses and scores are evaluated in memory and are not stored as user scores or notes.
 
 ## Checks that ship with the project
 

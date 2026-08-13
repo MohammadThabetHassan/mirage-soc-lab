@@ -181,12 +181,21 @@ export default function Exercises() {
                   <div className="flex items-center gap-2 text-emerald-200">
                     <CheckCircle2 className="h-4 w-4" />
                     <p className="font-semibold">
-                      {evaluate.data.correctAnswers} /{" "}
-                      {evaluate.data.totalQuestions} evidence decisions aligned
+                      {evaluate.data.score} / {evaluate.data.maximumScore}{" "}
+                      points · {evaluate.data.scoreBand.replace("-", " ")}
                     </p>
                   </div>
                   <p className="mt-2 text-xs leading-5 text-slate-300">
+                    {evaluate.data.correctAnswers} /{" "}
+                    {evaluate.data.totalQuestions} evidence decisions aligned.
+                    Each decision is worth{" "}
+                    {evaluate.data.rubric.pointsPerQuestion} points.
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-300">
                     {evaluate.data.privacyNotice}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    {evaluate.data.rubric.passCondition}
                   </p>
                   <ul className="mt-4 space-y-3">
                     {evaluate.data.feedback.map((item, index) => (
@@ -202,7 +211,9 @@ export default function Exercises() {
                           }
                         >
                           Decision {index + 1}:{" "}
-                          {item.correct ? "aligned" : "review needed"}
+                          {item.correct
+                            ? `${evaluate.data.rubric.pointsPerQuestion} / ${evaluate.data.rubric.pointsPerQuestion} points`
+                            : `0 / ${evaluate.data.rubric.pointsPerQuestion} points`}
                         </span>
                         <p className="mt-1">{item.rationale}</p>
                       </li>

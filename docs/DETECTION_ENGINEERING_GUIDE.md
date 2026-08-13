@@ -41,6 +41,10 @@ The catalog contains a learning objective, three validation steps, and an expect
 
 The release baseline in `server/soc/evaluation-baseline.json` records the catalog version and expected outcomes. Its test fails when a rule, scenario, or control changes without an intentional baseline update.
 
+## Guided exercise rubric
+
+The Exercises page turns three catalog scenarios into short evidence-reading exercises. Each exercise has two decisions, worth 50 points each, for a visible 100-point score. The score band is **evidence-aligned**, **partially-aligned**, or **revisit-evidence**. It is a prompt to reread the rule boundary and rationale, not a credential or a production-performance measurement. MIRAGE evaluates the score transiently and does not persist answers, profiles, or score history.
+
 ## How to change a rule
 
 Start with one narrow lab behavior. State the needed normalized fields, the threshold or correlation window, a plausible benign explanation, and the point at which an analyst should stop short of a conclusion. Then add or update:

@@ -18,8 +18,25 @@ describe("guided analyst exercises", () => {
       correctAnswers: 2,
       totalQuestions: 2,
       complete: true,
+      score: 100,
+      maximumScore: 100,
+      scoreBand: "evidence-aligned",
     });
     expect(result.privacyNotice).toMatch(/not persisted/i);
+  });
+
+  it("uses the same explicit rubric for a partially aligned decision", () => {
+    const result = evaluateAnalystExercise("credential-context", [
+      { questionId: "correlation-evidence", optionId: "same-source-sequence" },
+      { questionId: "disposition-boundary", optionId: "confirm-immediately" },
+    ]);
+    expect(result).toMatchObject({
+      correctAnswers: 1,
+      score: 50,
+      maximumScore: 100,
+      scoreBand: "partially-aligned",
+      rubric: { pointsPerQuestion: 50 },
+    });
   });
 
   it("rejects incomplete or invalid exercise responses", () => {

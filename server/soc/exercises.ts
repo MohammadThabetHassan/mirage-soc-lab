@@ -7,6 +7,7 @@ type ExerciseQuestion = {
   id: string;
   prompt: string;
   evidence: string;
+  criterion: string;
   options: Array<{ id: string; label: string }>;
   correctOptionId: string;
   rationale: string;
@@ -36,6 +37,7 @@ const EXERCISES: AnalystExercise[] = [
         prompt: "Which observation makes this an analyst-review correlation?",
         evidence:
           "The same synthetic source has repeated failures followed by a success inside the documented window.",
+        criterion: "Recognize the source-bound correlation evidence.",
         options: [
           {
             id: "same-source-sequence",
@@ -60,6 +62,7 @@ const EXERCISES: AnalystExercise[] = [
           "What is the correct lab disposition boundary before additional context?",
         evidence:
           "The catalog states that legitimate users can make mistakes and requires surrounding context.",
+        criterion: "Keep the lab signal separate from a production verdict.",
         options: [
           {
             id: "review-context",
@@ -97,6 +100,7 @@ const EXERCISES: AnalystExercise[] = [
           "Which rule property separates sustained pressure from a rapid repeated-failure rule?",
         evidence:
           "The v1.2 analytic declares a minimum failure count, a minimum time span, and a maximum correlation window.",
+        criterion: "Identify the sustained-pressure threshold contract.",
         options: [
           {
             id: "count-span-window",
@@ -121,6 +125,7 @@ const EXERCISES: AnalystExercise[] = [
         prompt: "Which documented control should remain silent?",
         evidence:
           "The catalog includes scheduled service retries and a one-event-below sustained boundary.",
+        criterion: "Recognize the documented negative control.",
         options: [
           {
             id: "scheduled-retries",
@@ -157,6 +162,7 @@ const EXERCISES: AnalystExercise[] = [
           "Which context is required for the controlled change rule to detect?",
         evidence:
           "The rule requires a source-bound login, a short time window, and an explicitly unapproved synthetic marker.",
+        criterion: "Identify the required change-context evidence.",
         options: [
           {
             id: "login-unapproved-window",
@@ -182,6 +188,7 @@ const EXERCISES: AnalystExercise[] = [
           "What should happen when the same synthetic change is explicitly approved?",
         evidence:
           "`authorized-policy-change` is a named known-benign control scenario.",
+        criterion: "Apply the approval-state control boundary.",
         options: [
           {
             id: "remain-silent",
@@ -242,11 +249,28 @@ export function evaluateAnalystExercise(
   });
 
   const correctAnswers = feedback.filter(item => item.correct).length;
+  const pointsPerQuestion = 50;
+  const score = correctAnswers * pointsPerQuestion;
+  const maximumScore = exercise.questions.length * pointsPerQuestion;
+  const scoreBand =
+    score === maximumScore
+      ? "evidence-aligned"
+      : score >= maximumScore / 2
+        ? "partially-aligned"
+        : "revisit-evidence";
   return {
     exerciseId: exercise.id,
     correctAnswers,
     totalQuestions: exercise.questions.length,
     complete: correctAnswers === exercise.questions.length,
+    score,
+    maximumScore,
+    scoreBand,
+    rubric: {
+      pointsPerQuestion,
+      passCondition:
+        "Use the rationale to revisit any decision that did not align with the documented evidence boundary.",
+    },
     feedback,
     privacyNotice:
       "Responses are evaluated transiently and are not persisted in MIRAGE.",
