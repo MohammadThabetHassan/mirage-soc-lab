@@ -103,22 +103,28 @@ MIRAGE is designed for controlled practice and validation rather than production
 | Unapproved synthetic policy change | Does a login plus an explicitly unapproved synthetic change meet the context rule?                  | One high-severity controlled context case is created.                        |
 | Authorized policy change           | Does an explicit approved marker suppress the unapproved-change rule?                               | No case is created; approval state is a required control.                    |
 
+## Guided analyst practice
+
+The authenticated **Exercises** workspace converts three catalog scenarios into short evidence-led decisions: credential context, sustained-pressure controls, and change-context boundaries. Each exercise asks two deterministic questions drawn from the documented contract, returns rationale immediately, and keeps the response transient. MIRAGE does **not** persist answers as a user profile, score history, analyst note, or production assessment.
+
+The versioned baseline at [`server/soc/evaluation-baseline.json`](server/soc/evaluation-baseline.json) records the expected catalog version, coverage, precision, false-positive rate, scenario classes, and observed detections for the current release. The baseline regression fails when the catalog, control scenarios, or engine behavior changes without corresponding release evidence.
+
 ## Verification and quality gates
 
-| Command                 | Purpose                                                                                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm format:check`     | Enforces repository formatting.                                                                                                                  |
-| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests.                                                              |
-| `pnpm check`            | Runs strict TypeScript validation.                                                                                                               |
-| `pnpm build`            | Produces the browser and server production bundles.                                                                                              |
-| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.                                                                          |
-| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                                                                             |
-| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                                                                             |
-| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                                                                                  |
-| `pnpm check:showcase`   | Verifies public content, one semantic page heading, repository-evidence links, approved link destinations, safety statement, and responsive CSS. |
-| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.                                                                   |
+| Command                 | Purpose                                                                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm format:check`     | Enforces repository formatting.                                                                                                                        |
+| `pnpm test`             | Runs server, detection, integrity, authorization, guided-exercise, evaluation-baseline, and authenticated workflow tests.                              |
+| `pnpm check`            | Runs strict TypeScript validation.                                                                                                                     |
+| `pnpm build`            | Produces the browser and server production bundles.                                                                                                    |
+| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.                                                                                |
+| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                                                                                   |
+| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                                                                                   |
+| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                                                                                        |
+| `pnpm check:showcase`   | Verifies public content, heading order, semantic landmarks, meaningful links, image alt text, repository evidence, token contrast, and responsive CSS. |
+| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.                                                                         |
 
-The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; results are published to GitHub Code Scanning and retained as SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails. A separate GitHub Pages workflow validates and deploys only the versioned static showcase after changes to `showcase/` or its deployment contract.
+The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; results are published to GitHub Code Scanning and retained as SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails. A separate GitHub Pages workflow validates and deploys only the versioned static showcase after changes to `showcase/` or its deployment contract. A weekly maintenance workflow triages inactive issues and pull requests while exempting `security` and `needs-maintainer` items.
 
 ## Documentation
 
@@ -138,6 +144,7 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 | [Enhancement Roadmap](docs/ENHANCEMENT_ROADMAP.md)                           | Prioritized controlled-platform roadmap, scope boundaries, and release plan.  |
 | [Changelog](CHANGELOG.md)                                                    | Versioned product, catalog, migration, and public-site change history.        |
 | [GitHub Pages Guide](docs/GITHUB_PAGES.md)                                   | Static showcase source, deployment permissions, and verification procedure.   |
+| [Maintainer Operations](docs/MAINTAINER_OPERATIONS.md)                       | Weekly triage, security routing, release evidence, and Pages recovery roles.  |
 | [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.               |
 | [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                      |
 | [Citation Metadata](CITATION.cff)                                            | Standard software citation for training, research, and demonstrations.        |
@@ -146,7 +153,7 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 
 ## Detection and ATT&CK context
 
-The versioned v1.2 catalog contains five deterministic rules: repeated authentication failures, success after failure, multi-stage decoy/discovery, low-and-slow authentication pressure, and a synthetic unapproved access-policy change after login. Each rule records a defensive strategy, analytic version, change class, evaluation contract, technique, tactic, rationale, telemetry prerequisites, triage boundary, caveat, and reference links. The corpus contains positive, known-benign, and edge scenarios with a learning objective, three validation steps, and an expected outcome.
+The versioned v1.2 catalog contains five deterministic rules: repeated authentication failures, success after failure, multi-stage decoy/discovery, low-and-slow authentication pressure, and a synthetic unapproved access-policy change after login. Each rule records a defensive strategy, analytic version, change class, evaluation contract, technique, tactic, rationale, telemetry prerequisites, triage boundary, caveat, and reference links. The corpus contains positive, known-benign, and edge scenarios with a learning objective, three validation steps, and an expected outcome. Release v1.3 adds transient guided practice and a versioned evaluation baseline without changing the detection behavior itself.
 
 - [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/)
 - [T1078 — Valid Accounts](https://attack.mitre.org/techniques/T1078/)

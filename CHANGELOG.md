@@ -6,6 +6,21 @@ All notable changes to MIRAGE are documented in this file. The project uses a li
 
 No unreleased changes are currently recorded.
 
+## [1.3.0] — 2026-08-13
+
+### Added
+
+- A protected guided analyst exercise workspace with three evidence-led, two-question controlled scenarios and transient deterministic feedback. Responses are not persisted as user scores, analyst notes, or production assessments.
+- A versioned evaluation baseline and regression that compares catalog version, expected outcomes, observed detections, and known-benign or edge controls to release evidence.
+- Static GitHub Pages accessibility checks for heading order, landmark structure, meaningful links, image alt declarations, and declared token contrast.
+- Weekly stale issue and pull-request triage, with `security` and `needs-maintainer` exemptions and documented maintainer responsibilities.
+
+### Changed
+
+- Recalibrated the aggregate production JavaScript budget to retain an explicit ceiling while accommodating the independently lazy-loaded guided exercise route.
+
+## [1.2.0] — 2026-08-13
+
 ## [1.2.0] — 2026-08-13
 
 ### Added
