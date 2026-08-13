@@ -28,8 +28,8 @@
 - [ ] Add visual regression coverage for public pages and authenticated analyst workflows at desktop and mobile breakpoints.
 - [ ] Add structured release notes, upgrade guidance, and a public roadmap aligned to the maintained detection catalog.
 - [ ] Add repository health automation for stale issues, dependency-update review, security-alert visibility, and a documented maintainer response process.
-- [ ] Define v1.2 catalog strategy, analytic-version, change-class, and evaluation-contract semantics with deterministic schema validation.
-- [ ] Add safe low-and-slow authentication-pressure and authorized-change-context behavior families with positive, benign, and threshold-edge scenarios.
-- [ ] Surface catalog version, strategy, analytic version, and evaluation-contract traceability in analyst evaluation and the public showcase.
-- [ ] Add static Pages link, semantic-heading, and repository-evidence validation to the public-site quality contract.
+- [x] Define v1.2 catalog strategy, analytic-version, change-class, and evaluation-contract semantics with deterministic schema validation.
+- [x] Add safe low-and-slow authentication-pressure and authorized-change-context behavior families with positive, benign, and threshold-edge scenarios.
+- [x] Surface catalog version, strategy, analytic version, and evaluation-contract traceability in analyst evaluation and the public showcase.
+- [x] Add static Pages link, semantic-heading, and repository-evidence validation to the public-site quality contract.
 - [ ] Publish a v1.2.0 changelog and verified release after all local and protected-branch checks pass.
