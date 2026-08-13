@@ -33,3 +33,8 @@
 - [x] Surface catalog version, strategy, analytic version, and evaluation-contract traceability in analyst evaluation and the public showcase.
 - [x] Add static Pages link, semantic-heading, and repository-evidence validation to the public-site quality contract.
 - [ ] Publish a v1.2.0 changelog and verified release after all local and protected-branch checks pass.
+- [x] Add a privacy-preserving guided analyst exercise mode with deterministic evidence prompts and explainable completion feedback.
+- [x] Add a versioned evaluation baseline artifact and automated drift check for catalog coverage, expected detections, and known-benign controls.
+- [x] Add automated static accessibility checks for heading order, landmark structure, link text, image alt text, and contrast declarations in the GitHub Pages source.
+- [x] Add a repository-maintenance workflow for stale issue triage and document maintainer alert, release, and Pages-recovery responsibilities.
+- [x] Publish a final maturity release only after local, protected-branch, MySQL, CodeQL, and Pages evidence is verified.
