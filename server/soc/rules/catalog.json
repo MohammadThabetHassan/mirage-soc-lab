@@ -6,6 +6,27 @@
       "title": "Repeated SSH authentication failures",
       "summary": "A source generated a concentrated authentication-failure burst against the controlled decoy gateway.",
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
+      "telemetryRequirements": [
+        {
+          "field": "eventType",
+          "purpose": "Differentiate authentication failures from other controlled event types."
+        },
+        {
+          "field": "sourceIp",
+          "purpose": "Correlate attempts to one lab source within the configured window."
+        },
+        {
+          "field": "occurredAt",
+          "purpose": "Measure the bounded burst window without relying on arrival order."
+        }
+      ],
+      "triageGuidance": {
+        "investigationQuestions": [
+          "Does one source meet the configured failure threshold within the correlation window?",
+          "Is a privileged username candidate present in the controlled event set?"
+        ],
+        "dispositionBoundary": "Treat a threshold match as suspicious in the lab; use the known-benign scenario to verify that ordinary administrative access does not create a case."
+      },
       "threshold": { "minimumFailures": 5 },
       "correlationWindowMinutes": 10,
       "mitreMappings": [
@@ -47,6 +68,27 @@
       "title": "Successful login after repeated failures",
       "summary": "A successful authentication followed a concentrated series of failures from the same source.",
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
+      "telemetryRequirements": [
+        {
+          "field": "eventType",
+          "purpose": "Establish the ordered failure-to-success transition."
+        },
+        {
+          "field": "sourceIp",
+          "purpose": "Bind the failures and success to the same controlled source."
+        },
+        {
+          "field": "occurredAt",
+          "purpose": "Confirm the transition occurs inside the defined correlation window."
+        }
+      ],
+      "triageGuidance": {
+        "investigationQuestions": [
+          "Did the same lab source produce both the failure sequence and the later success?",
+          "Does the success remain inside the configured correlation window after the failures?"
+        ],
+        "dispositionBoundary": "A successful login after mistakes can be benign; evaluate this rule alongside the benign-admin scenario and documented source context."
+      },
       "threshold": { "minimumFailures": 3 },
       "correlationWindowMinutes": 15,
       "mitreMappings": [
@@ -88,6 +130,31 @@
       "title": "Multi-stage decoy engagement and discovery",
       "summary": "Correlated credential activity, decoy engagement, and discovery-like behavior formed a complete lab attack story.",
       "inputFields": ["eventType", "sourceIp", "occurredAt", "command"],
+      "telemetryRequirements": [
+        {
+          "field": "eventType",
+          "purpose": "Require the controlled credential, decoy, and discovery event categories."
+        },
+        {
+          "field": "sourceIp",
+          "purpose": "Keep every stage attributable to one lab source."
+        },
+        {
+          "field": "command",
+          "purpose": "Identify allowlisted discovery-like command evidence without storing raw TTY logs."
+        },
+        {
+          "field": "occurredAt",
+          "purpose": "Validate stage order inside the bounded correlation window."
+        }
+      ],
+      "triageGuidance": {
+        "investigationQuestions": [
+          "Are credential activity, decoy engagement, and discovery evidence all present for one source?",
+          "Do the observed discovery events meet the configured minimum without including raw session content?"
+        ],
+        "dispositionBoundary": "Individual inventory commands are not sufficient; the critical lab story requires every configured stage and remains confined to controlled synthetic telemetry."
+      },
       "threshold": {
         "minimumFailures": 3,
         "minimumDiscoveryEvents": 2,

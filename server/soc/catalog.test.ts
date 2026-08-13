@@ -12,6 +12,9 @@ describe("detection-as-code catalog", () => {
     expect(DETECTION_RULES).toHaveLength(3);
     for (const rule of DETECTION_RULES) {
       expect(rule.inputFields.length).toBeGreaterThan(0);
+      expect(rule.telemetryRequirements.length).toBeGreaterThan(0);
+      expect(rule.triageGuidance.investigationQuestions).toHaveLength(2);
+      expect(rule.triageGuidance.dispositionBoundary).toBeTruthy();
       expect(rule.correlationWindowMinutes).toBeGreaterThan(0);
       expect(rule.mitreMappings.length).toBeGreaterThan(0);
       expect(rule.expectedBenignCases.length).toBeGreaterThan(0);

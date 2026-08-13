@@ -544,12 +544,42 @@ export default function Home() {
                 <p className="text-xs leading-5 text-slate-400">
                   {mapping.rationale}
                 </p>
+                <div className="mt-3 rounded-lg border border-cyan-400/15 bg-cyan-400/5 p-3">
+                  <p className="neon-label mb-2 text-[9px] text-cyan-300">
+                    Telemetry prerequisites
+                  </p>
+                  <ul className="space-y-2 text-xs leading-5 text-slate-400">
+                    {mapping.telemetryRequirements.map(requirement => (
+                      <li key={requirement.field}>
+                        <span className="font-mono text-cyan-200">
+                          {requirement.field}
+                        </span>{" "}
+                        — {requirement.purpose}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-3 rounded-lg border border-fuchsia-400/15 bg-fuchsia-400/5 p-3">
+                  <p className="neon-label mb-2 text-[9px] text-fuchsia-200">
+                    Triage prompts
+                  </p>
+                  <ul className="space-y-2 text-xs leading-5 text-slate-400">
+                    {mapping.triageGuidance.investigationQuestions.map(
+                      question => (
+                        <li key={question}>• {question}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
                 <div className="mt-3 rounded-lg border border-amber-400/15 bg-amber-400/5 p-3">
                   <p className="neon-label mb-1 text-[9px] text-amber-300">
                     Caveat
                   </p>
                   <p className="text-xs leading-5 text-slate-400">
                     {mapping.caveat}
+                  </p>
+                  <p className="mt-2 border-t border-amber-400/10 pt-2 text-xs leading-5 text-amber-100/80">
+                    {mapping.triageGuidance.dispositionBoundary}
                   </p>
                 </div>
               </div>

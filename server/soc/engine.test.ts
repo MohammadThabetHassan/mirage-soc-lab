@@ -73,6 +73,17 @@ describe("MIRAGE correlation engine", () => {
       expect(item.tactic.length).toBeGreaterThan(0);
       expect(item.rationale.length).toBeGreaterThan(20);
       expect(item.caveat.length).toBeGreaterThan(20);
+      expect(item.telemetryRequirements.length).toBeGreaterThan(0);
+      expect(
+        item.telemetryRequirements.every(
+          requirement =>
+            requirement.field.length > 0 && requirement.purpose.length > 10
+        )
+      ).toBe(true);
+      expect(item.triageGuidance.investigationQuestions).toHaveLength(2);
+      expect(item.triageGuidance.dispositionBoundary.length).toBeGreaterThan(
+        20
+      );
       expect(item.referenceUrl).toMatch(
         /^https:\/\/attack\.mitre\.org\/techniques\//
       );
@@ -80,6 +91,8 @@ describe("MIRAGE correlation engine", () => {
         entry => entry.ruleId === item.ruleId
       );
       expect(coverage?.evidenceField).toBeTruthy();
+      expect(coverage?.telemetryRequirements.length).toBeGreaterThan(0);
+      expect(coverage?.triageBoundary).toBeTruthy();
       expect(coverage?.testCaseIds.length).toBeGreaterThan(0);
     });
   });

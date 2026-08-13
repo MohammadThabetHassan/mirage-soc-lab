@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { lazy, Suspense } from "react";
 import { Route, Switch } from "wouter";
@@ -32,24 +31,22 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          <DashboardLayout>
-            <Suspense
-              fallback={
-                <main
-                  className="flex min-h-screen items-center justify-center"
-                  aria-busy="true"
-                  aria-live="polite"
-                >
-                  Loading MIRAGE workspace…
-                </main>
-              }
-            >
-              <Router />
-            </Suspense>
-          </DashboardLayout>
-          <Toaster theme="dark" richColors />
-        </TooltipProvider>
+        <DashboardLayout>
+          <Suspense
+            fallback={
+              <main
+                className="flex min-h-screen items-center justify-center"
+                aria-busy="true"
+                aria-live="polite"
+              >
+                Loading MIRAGE workspace…
+              </main>
+            }
+          >
+            <Router />
+          </Suspense>
+        </DashboardLayout>
+        <Toaster theme="dark" richColors />
       </ThemeProvider>
     </ErrorBoundary>
   );

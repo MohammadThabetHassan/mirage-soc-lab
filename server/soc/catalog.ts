@@ -8,11 +8,21 @@ const factorSchema = z.object({
   points: z.number().int().min(0).max(100),
   rationale: z.string().min(1),
 });
+const telemetryRequirementSchema = z.object({
+  field: z.string().min(1),
+  purpose: z.string().min(1),
+});
+const triageGuidanceSchema = z.object({
+  investigationQuestions: z.array(z.string().min(1)).min(2),
+  dispositionBoundary: z.string().min(1),
+});
 const ruleSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   summary: z.string().min(1),
   inputFields: z.array(z.string().min(1)).min(1),
+  telemetryRequirements: z.array(telemetryRequirementSchema).min(1),
+  triageGuidance: triageGuidanceSchema,
   threshold: z.object({
     minimumFailures: z.number().int().min(0).optional(),
     minimumDiscoveryEvents: z.number().int().min(0).optional(),
@@ -93,6 +103,8 @@ export const ATTACK_MAPPINGS: AttackMapping[] = DETECTION_RULES.flatMap(rule =>
     rationale: rule.summary,
     caveat: rule.expectedBenignCases.join(" "),
     referenceUrl: mapping.referenceUrl,
+    telemetryRequirements: rule.telemetryRequirements,
+    triageGuidance: rule.triageGuidance,
   }))
 );
 

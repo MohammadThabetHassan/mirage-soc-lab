@@ -195,16 +195,21 @@ export default function Evaluation() {
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px] text-left">
+              <table className="w-full min-w-[1240px] text-left">
                 <thead className="border-b border-cyan-400/10 bg-slate-950/25">
                   <tr className="neon-label text-[10px] text-slate-500">
                     <th className="px-5 py-3 font-medium">Technique</th>
                     <th className="px-5 py-3 font-medium">Evidence fields</th>
                     <th className="px-5 py-3 font-medium">
+                      Telemetry prerequisites
+                    </th>
+                    <th className="px-5 py-3 font-medium">
                       Scenario / test cases
                     </th>
                     <th className="px-5 py-3 font-medium">Detection logic</th>
-                    <th className="px-5 py-3 font-medium">Caveat</th>
+                    <th className="px-5 py-3 font-medium">
+                      Caveat and triage boundary
+                    </th>
                     <th className="px-5 py-3 font-medium">Status</th>
                   </tr>
                 </thead>
@@ -225,6 +230,16 @@ export default function Evaluation() {
                       <td className="px-5 py-4 font-mono text-[11px] text-slate-300">
                         {item.supportingEventFields.join(", ")}
                       </td>
+                      <td className="px-5 py-4 text-xs leading-5 text-slate-400">
+                        {item.telemetryRequirements.map(requirement => (
+                          <p key={requirement.field} className="mb-1 last:mb-0">
+                            <span className="font-mono text-cyan-200">
+                              {requirement.field}
+                            </span>{" "}
+                            — {requirement.purpose}
+                          </p>
+                        ))}
+                      </td>
                       <td className="px-5 py-4 font-mono text-[11px] text-slate-300">
                         {item.testCaseIds.join(", ")}
                       </td>
@@ -232,7 +247,10 @@ export default function Evaluation() {
                         {item.detectionLogic}
                       </td>
                       <td className="max-w-sm px-5 py-4 text-xs text-slate-400">
-                        {item.caveat}
+                        <p>{item.caveat}</p>
+                        <p className="mt-2 border-t border-amber-400/10 pt-2 text-amber-100/80">
+                          {item.triageBoundary}
+                        </p>
                       </td>
                       <td
                         className={`px-5 py-4 font-mono text-xs ${item.currentStatus === "validated" ? "text-emerald-200" : "text-amber-200"}`}

@@ -29,11 +29,13 @@ export function buildAttackCoverageMatrix(scenarios: ScenarioEvaluation[]) {
       technique: `${mapping.techniqueId} — ${mapping.techniqueName}`,
       tactic: mapping.tactic,
       supportingEventFields: rule.inputFields,
+      telemetryRequirements: rule.telemetryRequirements,
       evidenceField: rule.inputFields[0]!,
       scenarioIds,
       testCaseIds: scenarioIds,
       detectionLogic: `${thresholdSummary}; correlation window ${rule.correlationWindowMinutes} minutes.`,
       caveat: rule.expectedBenignCases.join(" "),
+      triageBoundary: rule.triageGuidance.dispositionBoundary,
       expectedResult: `Detect in ${scenarioIds.join(", ")}.`,
       currentStatus: observedByScenario.every(result => result.observed)
         ? "validated"

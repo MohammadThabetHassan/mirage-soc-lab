@@ -67,4 +67,9 @@ export type AttackMapping = {
   rationale: string;
   caveat: string;
   referenceUrl: string;
+  telemetryRequirements: Array<{ field: string; purpose: string }>;
+  triageGuidance: {
+    investigationQuestions: string[];
+    dispositionBoundary: string;
+  };
 };
