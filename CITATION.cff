@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use MIRAGE SOC Lab in training, research, or demonstrations, please cite it as below."
 title: "MIRAGE SOC Lab"
 type: software
-version: 1.0.0
+version: 1.0.1
 date-released: 2026-08-13
 license: MIT
 repository-code: "https://github.com/MohammadThabetHassan/mirage-soc-lab"

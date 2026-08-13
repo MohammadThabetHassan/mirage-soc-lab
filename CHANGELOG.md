@@ -6,6 +6,19 @@ All notable changes to MIRAGE are documented in this file. The project uses a li
 
 No unreleased changes are currently recorded.
 
+## [1.0.1] — 2026-08-13
+
+### Added
+
+- A dedicated 1280×640 GitHub social-preview image, maintained separately from the single interior README illustration.
+- Public-release checklist, visual-asset usage notes, a safe `.env.example`, and issue-template routing.
+- Public package metadata for repository discovery, runtime compatibility, and accidental npm-publication prevention.
+
+### Changed
+
+- The public CodeQL workflow now uploads results to GitHub Code Scanning and retains SARIF evidence.
+- Dependabot alerts and automated security updates are enabled for the public repository.
+
 ## [1.0.0] — 2026-08-13
 
 ### Added

@@ -1,8 +1,21 @@
 {
   "name": "mirage-soc-lab",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "description": "Controlled SOC lab for deterministic detection engineering, analyst workflow training, and evaluation.",
+  "private": true,
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab.git"
+  },
+  "homepage": "https://github.com/MohammadThabetHassan/mirage-soc-lab",
+  "bugs": {
+    "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "build": "vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
