@@ -12,7 +12,6 @@ import { registerOAuthRoutes } from "./oauth";
 import { requestObservability } from "./observability";
 import { assessReadiness } from "./readiness";
 import { securityHeaders } from "./securityHeaders";
-import { registerStorageProxy } from "./storageProxy";
 import { isDatabaseReachable } from "../db";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -65,7 +64,6 @@ async function startServer() {
   // Configure body parser with a bounded request limit for controlled lab imports.
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ limit: "2mb", extended: true }));
-  registerStorageProxy(app);
   registerOAuthRoutes(app);
   // tRPC API
   app.use(
