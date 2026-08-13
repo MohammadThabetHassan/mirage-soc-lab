@@ -17,7 +17,7 @@
 - [x] Add explicit Vitest coverage for ATT&CK mapping metadata and risk-score breakdowns across all detection paths.
 - [x] Expand the README with exact setup, database migration, authentication, scenario replay, and expected evaluation steps.
 - [x] Clarify platform-provided versus self-hosted authentication environment requirements and the local sign-in workflow in the README.
-- [ ] Replace the external showcase preview with a restrained, repository-hosted GitHub Pages site deployed by GitHub Actions.
-- [ ] Add practical detection-engineering use cases, including telemetry readiness, analyst triage, and validation paths, and expose them consistently in code and documentation.
-- [ ] Synchronize the README, package metadata, release notes, and contributor guidance with the GitHub Pages site and new practical capabilities.
-- [ ] Verify the Pages deployment, protected-branch checks, security workflows, and release evidence after the enhancement cycle.
+- [x] Replace the external showcase preview with a restrained, repository-hosted GitHub Pages site deployed by GitHub Actions.
+- [x] Add practical detection-engineering use cases, including telemetry readiness, analyst triage, and validation paths, and expose them consistently in code and documentation.
+- [x] Synchronize the README, package metadata, release notes, and contributor guidance with the GitHub Pages site and new practical capabilities.
+- [x] Verify the Pages deployment, protected-branch checks, security workflows, and release evidence after the enhancement cycle.
