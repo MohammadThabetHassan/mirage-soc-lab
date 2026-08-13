@@ -32,3 +32,15 @@ Dependabot alerts and automated security updates were enabled. Dependabot’s in
 - [GitHub: Configuring advanced setup for code scanning](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configuring-advanced-setup-for-code-scanning)
 - [GitHub: About protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
 - [GitHub: Licensing a repository](https://docs.github.com/articles/licensing-a-repository)
+
+## ATT&CK detection-engineering findings — 2026-08-13
+
+ATT&CK describes tactics as the adversary's objective, techniques as the behavior used to achieve it, and procedures as concrete real-world implementations. MITRE cautions defenders not to claim coverage from a single observed technique implementation: each rule must state its observable behavior, telemetry prerequisites, analytic limitations, and validation evidence. ATT&CK also recommends prioritizing behaviors relevant to the defender's environment rather than attempting blanket matrix coverage.
+
+ATT&CK's legacy data-source inventory remains useful for explaining sensor and log prerequisites, although MITRE deprecated additions to that taxonomy in ATT&CK v18. MIRAGE should therefore retain explicit telemetry requirements but frame them as lab-specific observability contracts, not claims of exhaustive ATT&CK data-source coverage.
+
+### Sources
+
+- [MITRE ATT&CK: Resources](https://attack.mitre.org/resources/)
+- [MITRE ATT&CK: Data Sources](https://attack.mitre.org/datasources/)
+- [MITRE Center for Threat-Informed Defense: Detection Engineering](https://ctid.mitre.org/categories/detection-engineering/)

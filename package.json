@@ -1,6 +1,6 @@
 {
   "name": "mirage-soc-lab",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Controlled SOC lab for deterministic detection engineering, analyst workflow training, and evaluation.",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab.git"
   },
-  "homepage": "https://github.com/MohammadThabetHassan/mirage-soc-lab",
+  "homepage": "https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer",
   "bugs": {
     "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab/issues"
   },

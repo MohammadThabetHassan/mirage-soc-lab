@@ -10,11 +10,11 @@
 
 > **MIRAGE is a controlled-lab application.** It does not scan external systems, test credentials, collect public telemetry, or interact with third-party infrastructure. It is not an autonomous production SOC.
 
-## Inside MIRAGE
+![MIRAGE signal prism: an amber incident ray resolved into a graphite plane and cyan evidence traces](docs/assets/mirage-signal-prism-logo.png)
 
-![Interior concept of the MIRAGE analyst workspace](docs/assets/mirage-soc-interior.webp)
+_The signal prism is MIRAGE’s compact project mark. The social-preview artwork remains configured separately in GitHub repository settings and does not appear in this README. The public showcase site uses richer visual storytelling without treating illustrative material as telemetry._
 
-_This illustrative interior concept represents MIRAGE’s controlled analyst workspace. Dashboard visuals are abstract and do not contain production or third-party telemetry. The repository’s social-preview artwork is configured separately through GitHub repository settings and intentionally does not appear in this README._
+> **Public showcase:** explore the [MIRAGE Signal Foundry evidence dossier](https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer) for the project’s controlled scope, ATT&CK-aware detection method, assurance model, and release evidence.
 
 ## Why MIRAGE
 
@@ -106,22 +106,24 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 
 ## Documentation
 
-| Document                                                                     | Purpose                                                                     |
-| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md)                                         | Component boundaries, data flow, trust boundaries, and persistence model.   |
-| [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md)             | Researched hardening roadmap and assurance target.                          |
-| [Security Assurance Matrix](docs/SECURITY_ASSURANCE_MATRIX.md)               | ASVS-inspired control coverage, evidence, and residual risks.               |
-| [Authorization and Abuse Controls](docs/AUTHORIZATION_AND_ABUSE_CONTROLS.md) | Role policy, rate limits, and distributed-scaling boundary.                 |
-| [Data Governance](docs/DATA_GOVERNANCE.md)                                   | Integrity, migration, and retention procedures.                             |
-| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)                             | Health checks, request IDs, incident triage, and release operations.        |
-| [Release Readiness](docs/RELEASE_READINESS.md)                               | Verified release evidence and documented limitations.                       |
-| [Release Procedure](docs/RELEASE_PROCEDURE.md)                               | Versioning, migration, deployment, and post-release verification steps.     |
-| [Public Release Checklist](docs/PUBLIC_RELEASE_CHECKLIST.md)                 | Safe visibility-change, social-preview, security, and governance actions.   |
-| [Dependency Security](docs/DEPENDENCY_SECURITY.md)                           | Dependency audit policy and remediation history.                            |
-| [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.             |
-| [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                    |
-| [Citation Metadata](CITATION.cff)                                            | Standard software citation for training, research, and demonstrations.      |
-| [Visual Assets](docs/assets)                                                 | Interior README artwork and the separate GitHub social-preview upload file. |
+| Document                                                                          | Purpose                                                                         |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                                              | Component boundaries, data flow, trust boundaries, and persistence model.       |
+| [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md)                  | Researched hardening roadmap and assurance target.                              |
+| [Security Assurance Matrix](docs/SECURITY_ASSURANCE_MATRIX.md)                    | ASVS-inspired control coverage, evidence, and residual risks.                   |
+| [Authorization and Abuse Controls](docs/AUTHORIZATION_AND_ABUSE_CONTROLS.md)      | Role policy, rate limits, and distributed-scaling boundary.                     |
+| [Data Governance](docs/DATA_GOVERNANCE.md)                                        | Integrity, migration, and retention procedures.                                 |
+| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)                                  | Health checks, request IDs, incident triage, and release operations.            |
+| [Release Readiness](docs/RELEASE_READINESS.md)                                    | Verified release evidence and documented limitations.                           |
+| [Release Procedure](docs/RELEASE_PROCEDURE.md)                                    | Versioning, migration, deployment, and post-release verification steps.         |
+| [Public Release Checklist](docs/PUBLIC_RELEASE_CHECKLIST.md)                      | Safe visibility-change, social-preview, security, and governance actions.       |
+| [Dependency Security](docs/DEPENDENCY_SECURITY.md)                                | Dependency audit policy and remediation history.                                |
+| [Detection Engineering Guide](docs/DETECTION_ENGINEERING_GUIDE.md)                | Rule contract, ATT&CK context, telemetry prerequisites, and safe triage.        |
+| [Contributing](CONTRIBUTING.md)                                                   | Local development, test, review, and pull-request expectations.                 |
+| [Security Policy](SECURITY.md)                                                    | Vulnerability-reporting route and security expectations.                        |
+| [Citation Metadata](CITATION.cff)                                                 | Standard software citation for training, research, and demonstrations.          |
+| [Visual Assets](docs/assets)                                                      | Compact README brand mark and the separate GitHub social-preview upload file.   |
+| [Public Showcase](https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer) | Signal Foundry presentation of MIRAGE’s scope, method, assurance, and evidence. |
 
 ## Detection and ATT&CK context
 
