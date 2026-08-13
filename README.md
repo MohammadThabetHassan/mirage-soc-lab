@@ -104,7 +104,7 @@ Open the local URL, choose **Sign in to continue**, and complete the configured 
 | `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                     |
 | `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.      |
 
-The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; browser reports are retained for seven days only when a smoke-test job fails.
+The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; it retains private SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails.
 
 ## Documentation
 
