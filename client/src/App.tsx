@@ -7,6 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 const Evaluation = lazy(() => import("./pages/Evaluation"));
+const Exercises = lazy(() => import("./pages/Exercises"));
 const Home = lazy(() => import("./pages/Home"));
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/evaluation"} component={Evaluation} />
+      <Route path={"/exercises"} component={Exercises} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

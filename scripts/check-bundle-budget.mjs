@@ -2,7 +2,9 @@ import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 const assetsDirectory = path.resolve("dist/public/assets");
-const maximumTotalJavaScriptBytes = 650 * 1024;
+// Includes the independently lazy-loaded guided exercise route added in v1.3.
+// Keep the ceiling below 680 KiB so additional route code must justify its cost.
+const maximumTotalJavaScriptBytes = 680 * 1024;
 const maximumSingleJavaScriptBytes = 600 * 1024;
 
 async function javascriptAssets(directory) {

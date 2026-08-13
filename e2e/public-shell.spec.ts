@@ -4,12 +4,14 @@ test.describe("unauthenticated application boundary", () => {
   test("renders an accessible sign-in gate for protected routes", async ({
     page,
   }) => {
-    await page.goto("/evaluation");
+    for (const path of ["/evaluation", "/exercises"]) {
+      await page.goto(path);
 
-    await expect(
-      page.getByRole("heading", { name: "Sign in to continue" })
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Sign in to continue" })
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+    }
   });
 
   test("provides a labeled main region and reachable sign-in control", async ({

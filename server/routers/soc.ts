@@ -23,6 +23,10 @@ import {
 } from "../soc/engine";
 import { assessCaseIntegrity } from "../soc/integrity";
 import {
+  evaluateAnalystExercise,
+  listAnalystExercises,
+} from "../soc/exercises";
+import {
   createSlidingWindowRateLimiter,
   type RateLimitPolicy,
 } from "../soc/rateLimit";
@@ -43,6 +47,7 @@ const actionLimiter = createSlidingWindowRateLimiter();
 const ACTION_POLICIES = {
   controlledImport: { maxRequests: 6, windowMs: 60_000 },
   scenarioReplay: { maxRequests: 12, windowMs: 60_000 },
+  exerciseEvaluation: { maxRequests: 30, windowMs: 60_000 },
   disposition: { maxRequests: 20, windowMs: 60_000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 
@@ -66,6 +71,26 @@ export const socRouter = router({
   snapshot: protectedProcedure.query(() => getSocSnapshot()),
   attackMappings: protectedProcedure.query(() => ATTACK_MAPPINGS),
   detectionCatalog: protectedProcedure.query(() => DETECTION_CATALOG),
+  analystExercises: protectedProcedure.query(() => listAnalystExercises()),
+  evaluateAnalystExercise: protectedProcedure
+    .input(
+      z.object({
+        exerciseId: z.string().min(3).max(64),
+        responses: z
+          .array(
+            z.object({
+              questionId: z.string().min(3).max(64),
+              optionId: z.string().min(3).max(64),
+            })
+          )
+          .min(1)
+          .max(8),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      enforceActionRateLimit(ctx.user.id, "exerciseEvaluation");
+      return evaluateAnalystExercise(input.exerciseId, input.responses);
+    }),
   importControlledCowrie: adminProcedure
     .input(
       z.object({

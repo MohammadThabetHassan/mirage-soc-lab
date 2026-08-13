@@ -1,0 +1,63 @@
+{
+  "baselineVersion": "1.2.0",
+  "catalogVersion": "1.2.0",
+  "coverage": 100,
+  "alertPrecision": 100,
+  "falsePositiveRate": 0,
+  "scenarios": [
+    {
+      "key": "full-pipeline",
+      "classification": "known-positive",
+      "expectedRuleIds": [
+        "repeated-auth-failures",
+        "success-after-failure",
+        "multi-stage-sequence"
+      ]
+    },
+    {
+      "key": "credential-probe",
+      "classification": "known-positive",
+      "expectedRuleIds": ["repeated-auth-failures", "success-after-failure"]
+    },
+    {
+      "key": "benign-admin",
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "threshold-boundary",
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "low-and-slow-pressure",
+      "classification": "known-positive",
+      "expectedRuleIds": ["low-and-slow-auth-pressure"]
+    },
+    {
+      "key": "scheduled-service-retries",
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "low-and-slow-boundary",
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "unapproved-policy-change",
+      "classification": "known-positive",
+      "expectedRuleIds": ["unapproved-access-policy-change"]
+    },
+    {
+      "key": "authorized-policy-change",
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "policy-change-without-auth",
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    }
+  ]
+}

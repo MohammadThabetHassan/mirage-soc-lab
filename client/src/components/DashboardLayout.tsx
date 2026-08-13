@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import {
   Activity,
   BarChart3,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
   PanelLeft,
@@ -17,6 +18,7 @@ import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 const menuItems = [
   { icon: LayoutDashboard, label: "Live SOC", path: "/" },
   { icon: BarChart3, label: "Evaluation", path: "/evaluation" },
+  { icon: GraduationCap, label: "Exercises", path: "/exercises" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

@@ -1,0 +1,43 @@
+name: Stale issue and pull request maintenance
+
+on:
+  schedule:
+    - cron: "18 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage-stale-items:
+    name: Triage inactive collaboration items
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark and close inactive items with documented exceptions
+        uses: actions/stale@v10
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: >-
+            This issue has had no activity for 90 days. It will close in 21 days
+            unless it is still reproducible, aligned to the controlled defensive
+            scope, or needs maintainer review.
+          stale-pr-message: >-
+            This pull request has had no activity for 60 days. It will close in
+            21 days unless it is ready for review, linked to a current issue,
+            and passes the repository quality gates.
+          close-issue-message: >-
+            Closing due to inactivity. A focused, reproducible issue can be
+            opened again with the requested context.
+          close-pr-message: >-
+            Closing due to inactivity. Please open a fresh pull request when the
+            change is ready for review and current with main.
+          days-before-issue-stale: 90
+          days-before-issue-close: 21
+          days-before-pr-stale: 60
+          days-before-pr-close: 21
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: security,needs-maintainer
+          exempt-pr-labels: security,needs-maintainer
+          operations-per-run: 100
