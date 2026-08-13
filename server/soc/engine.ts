@@ -6,6 +6,7 @@ import type {
   RiskFactor,
 } from "@shared/soc";
 import {
+  DETECTION_CATALOG,
   getRule,
   riskFactorsFor,
   SCENARIOS,
@@ -320,7 +321,7 @@ export function evaluateDefinitions() {
     };
   });
   return {
-    catalogVersion: "1.0.0",
+    catalogVersion: DETECTION_CATALOG.version,
     scenarios,
     coverage: expectedTotal
       ? (scenarios.reduce((sum, item) => sum + item.matchedExpected, 0) /

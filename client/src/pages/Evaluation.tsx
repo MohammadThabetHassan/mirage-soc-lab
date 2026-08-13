@@ -188,6 +188,49 @@ export default function Evaluation() {
             </div>
           </section>
 
+          <section className="neon-panel mb-6 overflow-hidden rounded-xl">
+            <div className="flex items-center justify-between border-b border-cyan-400/15 px-5 py-4">
+              <div>
+                <h2 className="neon-label text-[10px] text-slate-200">
+                  Practical scenario playbooks
+                </h2>
+                <p className="mt-2 text-xs text-slate-500">
+                  Each scenario states what it is meant to prove, the minimum
+                  validation path, and the expected lab outcome.
+                </p>
+              </div>
+              <span className="font-mono text-[10px] text-cyan-300/80">
+                {data.catalogVersion}
+              </span>
+            </div>
+            <div className="grid gap-px bg-cyan-400/10 md:grid-cols-2">
+              {data.scenarios.map(item => (
+                <article key={item.key} className="bg-slate-950/30 p-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-cyan-300">
+                    {item.classification}
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-slate-100">
+                    {item.label}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-400">
+                    {item.useCase.learningObjective}
+                  </p>
+                  <ol className="mt-4 list-decimal space-y-2 pl-4 text-xs leading-5 text-slate-400">
+                    {item.useCase.validationSteps.map(step => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                  <p className="mt-4 border-t border-cyan-400/10 pt-3 text-xs text-emerald-100/85">
+                    <span className="font-semibold text-emerald-200">
+                      Expected outcome:
+                    </span>{" "}
+                    {item.useCase.expectedOutcome}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
           <section className="neon-panel overflow-hidden rounded-xl">
             <div className="border-b border-cyan-400/15 px-5 py-4">
               <h2 className="neon-label text-[10px] text-slate-200">

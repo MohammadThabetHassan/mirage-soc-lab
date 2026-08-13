@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="MIRAGE SOC Lab: a controlled environment for testing deterministic detections, analyst decisions, and ATT&CK traceability."
+    />
+    <title>MIRAGE SOC Lab — Practical Detection Engineering</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="MIRAGE SOC Lab home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>MIRAGE SOC Lab</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#use-cases">Use cases</a>
+        <a href="#detection-contract">Detection contract</a>
+        <a href="#start">Start here</a>
+      </nav>
+      <a
+        class="repository-link"
+        href="https://github.com/MohammadThabetHassan/mirage-soc-lab"
+        >View repository</a
+      >
+    </header>
+
+    <main id="top">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Controlled defensive security laboratory</p>
+        <h1 id="page-title">
+          Practice detection decisions with evidence you can inspect.
+        </h1>
+        <p class="lead">
+          MIRAGE is a local-first SOC lab for deterministic telemetry replay,
+          ATT&amp;CK-aware detections, analyst disposition practice, and
+          repeatable evaluation. It is built to explain what a rule needs, what
+          it found, and where its conclusion must stop.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="#start">See the workflow</a>
+          <a
+            class="button secondary"
+            href="https://github.com/MohammadThabetHassan/mirage-soc-lab/blob/main/docs/DETECTION_ENGINEERING_GUIDE.md"
+            >Read the detection guide</a
+          >
+        </div>
+      </section>
+
+      <section class="scope" aria-label="MIRAGE scope">
+        <div>
+          <strong>Safe by design</strong>
+          <span
+            >Controlled synthetic telemetry and an optional private lab
+            fixture.</span
+          >
+        </div>
+        <div>
+          <strong>Rule-first</strong>
+          <span
+            >Versioned thresholds, telemetry prerequisites, and explicit
+            caveats.</span
+          >
+        </div>
+        <div>
+          <strong>Evidence-led</strong>
+          <span
+            >Scenario results, analyst history, integrity checks, and CI
+            evidence.</span
+          >
+        </div>
+      </section>
+
+      <section id="use-cases" aria-labelledby="use-cases-title">
+        <p class="eyebrow">Practical use cases</p>
+        <h2 id="use-cases-title">
+          Four exercises that make a detection useful.
+        </h2>
+        <p class="section-intro">
+          Each exercise has a declared expected result. Positive scenarios show
+          a defined rule path; benign and boundary scenarios show what should
+          not become an alert.
+        </p>
+        <div class="use-case-grid">
+          <article>
+            <h3>Regression-proof a rule change</h3>
+            <p>
+              Replay the full credential-to-decoy-to-discovery story and confirm
+              that every intended rule still appears with the same traceable
+              evidence.
+            </p>
+            <span class="tag">Full pipeline story</span>
+          </article>
+          <article>
+            <h3>Practice contextual authentication triage</h3>
+            <p>
+              Compare a success after repeated failures with the source, window,
+              and documented benign boundary before assigning a disposition.
+            </p>
+            <span class="tag">Credential probe</span>
+          </article>
+          <article>
+            <h3>Prove a false-positive boundary</h3>
+            <p>
+              Run ordinary administrative activity and verify it produces no
+              case, rather than treating an absence of alerts as an assumption.
+            </p>
+            <span class="tag">Benign admin activity</span>
+          </article>
+          <article>
+            <h3>Test the exact threshold edge</h3>
+            <p>
+              Run one fewer failure than the configured threshold to demonstrate
+              that the rule’s trigger is intentional and observable.
+            </p>
+            <span class="tag">Threshold boundary</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="detection-contract" aria-labelledby="contract-title">
+        <p class="eyebrow">Detection contract</p>
+        <h2 id="contract-title">A rule is more than a technique label.</h2>
+        <div class="contract-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>What it demonstrates</th>
+                <th>Required evidence</th>
+                <th>Analyst boundary</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Repeated SSH authentication failures</td>
+                <td>T1110 — Brute Force</td>
+                <td>Failure event type, source, time, and account candidate</td>
+                <td>
+                  A threshold match is suspicious in the lab, not a production
+                  verdict.
+                </td>
+              </tr>
+              <tr>
+                <td>Successful login after repeated failures</td>
+                <td>T1078 — Valid Accounts</td>
+                <td>
+                  Source-bound failure sequence and later success inside the
+                  window
+                </td>
+                <td>
+                  Legitimate users can make mistakes; evaluate the surrounding
+                  context.
+                </td>
+              </tr>
+              <tr>
+                <td>Multi-stage decoy engagement and discovery</td>
+                <td>T1087 — Account Discovery</td>
+                <td>
+                  Credential activity, decoy interaction, and allowlisted
+                  discovery evidence
+                </td>
+                <td>
+                  One inventory command alone does not form the complete lab
+                  story.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="start" class="workflow" aria-labelledby="workflow-title">
+        <p class="eyebrow">Start here</p>
+        <h2 id="workflow-title">
+          Move from a change to an explainable result.
+        </h2>
+        <ol>
+          <li>
+            <strong>Read the contract.</strong> Review the rule threshold,
+            expected benign case, ATT&amp;CK context, telemetry prerequisites,
+            and triage questions.
+          </li>
+          <li>
+            <strong>Run the matching scenario.</strong> Use the controlled
+            scenario to generate only the data needed for the stated exercise.
+          </li>
+          <li>
+            <strong>Inspect the case.</strong> Validate the timeline, risk
+            factors, analyst disposition boundary, and evidence integrity
+            status.
+          </li>
+          <li>
+            <strong>Verify the outcome.</strong> Check the evaluation matrix and
+            run the test, type, build, browser, and security gates before
+            sharing a change.
+          </li>
+        </ol>
+      </section>
+
+      <section class="resources" aria-labelledby="resources-title">
+        <p class="eyebrow">Repository evidence</p>
+        <h2 id="resources-title">
+          Everything shown here links back to a versioned source.
+        </h2>
+        <ul>
+          <li>
+            <a
+              href="https://github.com/MohammadThabetHassan/mirage-soc-lab/blob/main/README.md"
+              >Project README and local setup</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/MohammadThabetHassan/mirage-soc-lab/blob/main/docs/DETECTION_ENGINEERING_GUIDE.md"
+              >Detection Engineering Guide</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/MohammadThabetHassan/mirage-soc-lab/blob/main/server/soc/rules/catalog.json"
+              >Versioned detection catalog</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/MohammadThabetHassan/mirage-soc-lab/actions"
+              >Quality, browser, persistence, and CodeQL evidence</a
+            >
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        <strong>MIRAGE SOC Lab</strong> is a controlled defensive training
+        application. It does not scan systems, test credentials, or collect
+        third-party telemetry.
+      </p>
+      <a href="https://github.com/MohammadThabetHassan/mirage-soc-lab"
+        >GitHub repository</a
+      >
+    </footer>
+  </body>
+</html>

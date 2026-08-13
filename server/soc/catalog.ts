@@ -52,6 +52,11 @@ const scenarioSchema = z.object({
   key: z.string().regex(/^[a-z0-9-]+$/),
   label: z.string().min(1),
   description: z.string().min(1),
+  useCase: z.object({
+    learningObjective: z.string().min(20),
+    validationSteps: z.array(z.string().min(10)).min(3),
+    expectedOutcome: z.string().min(20),
+  }),
   classification: z.enum(["known-positive", "known-benign", "edge-case"]),
   expectedRuleIds: z.array(z.string()),
 });

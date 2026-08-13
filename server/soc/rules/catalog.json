@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "rules": [
     {
       "id": "repeated-auth-failures",
@@ -202,6 +202,15 @@
       "key": "full-pipeline",
       "label": "Full pipeline story",
       "description": "Brute-force attempts progress to decoy interaction and discovery behavior.",
+      "useCase": {
+        "learningObjective": "Validate that a correlated credential-to-decoy-to-discovery story continues to produce every intended detection after a rule or parser change.",
+        "validationSteps": [
+          "Replay the controlled scenario from the analyst workspace.",
+          "Confirm that all three expected rules produce cases with one source-bound timeline.",
+          "Compare the observed rule IDs with the evaluation matrix before accepting the change."
+        ],
+        "expectedOutcome": "Three detections are present: repeated failures, success after failure, and the multi-stage sequence."
+      },
       "classification": "known-positive",
       "expectedRuleIds": [
         "repeated-auth-failures",
@@ -213,6 +222,15 @@
       "key": "credential-probe",
       "label": "Credential probe",
       "description": "Authentication failures followed by a successful login.",
+      "useCase": {
+        "learningObjective": "Practice deciding whether a later authentication success should be escalated by reviewing source continuity and the configured time window.",
+        "validationSteps": [
+          "Replay the controlled credential-probe scenario.",
+          "Inspect the failure and success evidence for one source and the defined correlation window.",
+          "Record a disposition that cites the triage boundary rather than the technique label alone."
+        ],
+        "expectedOutcome": "Two detections are present and the case remains explainable as a lab signal that requires contextual review."
+      },
       "classification": "known-positive",
       "expectedRuleIds": ["repeated-auth-failures", "success-after-failure"]
     },
@@ -220,6 +238,15 @@
       "key": "benign-admin",
       "label": "Benign admin activity",
       "description": "Normal administrative access that should not create a case.",
+      "useCase": {
+        "learningObjective": "Demonstrate that ordinary authorized administration and isolated inventory activity remain outside the current detection boundaries.",
+        "validationSteps": [
+          "Replay the known-benign administrative scenario.",
+          "Confirm that the evaluation matrix reports zero observed detections and zero false positives.",
+          "Use the result as a negative control when revising a related correlation rule."
+        ],
+        "expectedOutcome": "No case is created; the scenario remains a documented negative control."
+      },
       "classification": "known-benign",
       "expectedRuleIds": []
     },
@@ -227,6 +254,15 @@
       "key": "threshold-boundary",
       "label": "Threshold boundary",
       "description": "Exactly one fewer authentication failure than the repeated-failure threshold.",
+      "useCase": {
+        "learningObjective": "Prove that the repeated-failure rule begins only at its declared threshold rather than alerting on nearby but insufficient activity.",
+        "validationSteps": [
+          "Replay the edge-case scenario with one fewer failure than the configured threshold.",
+          "Confirm that no repeated-failure detection is observed.",
+          "Change the threshold only with a corresponding scenario and regression-test update."
+        ],
+        "expectedOutcome": "No case is created, demonstrating a precise and testable correlation boundary."
+      },
       "classification": "edge-case",
       "expectedRuleIds": []
     }

@@ -28,6 +28,12 @@ describe("detection-as-code catalog", () => {
         SCENARIOS.some(scenario => scenario.expectedRuleIds.includes(rule.id))
       ).toBe(true);
     }
+
+    for (const scenario of SCENARIOS) {
+      expect(scenario.useCase.learningObjective.length).toBeGreaterThan(20);
+      expect(scenario.useCase.validationSteps).toHaveLength(3);
+      expect(scenario.useCase.expectedOutcome.length).toBeGreaterThan(20);
+    }
   });
 
   it("rejects incomplete rules and scenarios referencing unknown rules", () => {
