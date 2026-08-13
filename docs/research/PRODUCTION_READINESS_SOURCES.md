@@ -15,3 +15,20 @@ Research gathered for the MIRAGE SOC Lab hardening program.
 2. Controls should be verifiable through code, automated tests, CI, or a documented deployment prerequisite.
 3. Sensitive behavior must default to least privilege, bounded input, transparent error handling, and non-sensitive telemetry.
 4. Release readiness requires a reproducible evidence trail rather than an informal claim.
+
+## Public-release configuration findings — 2026-08-13
+
+GitHub recommends a social-preview image of 1280×640 pixels and supports PNG, JPG, or GIF uploads below 1 MB. Social previews are uploaded through repository **Settings → Social preview** rather than embedded in a README. The MIRAGE social-preview asset follows this guidance: `docs/assets/mirage-social-preview.jpg` is a 1280×640 JPEG at approximately 148 KB.
+
+GitHub’s advanced CodeQL setup is eligible for publicly visible repositories with GitHub Actions enabled. After MIRAGE became public, the CodeQL workflow was changed from local SARIF-only analysis to GitHub Code Scanning upload with `security-events: write`.
+
+GitHub branch protection can require reviews, successful status checks, signed commits, linear history, resolved conversations, and restrictions on force pushes or deletion. MIRAGE remains intentionally direct-main until maintainers choose a contribution model; the public-release checklist records branch protection as the next collaboration-governance action.
+
+Dependabot alerts and automated security updates were enabled. Dependabot’s initial `tar` security update could not be generated because its resolver reported latest possible `tar` version `7.5.1`, while the earliest fixed version was `7.5.21`; this requires an upstream-resolution or package-manager remediation rather than blindly merging an unavailable update.
+
+### Sources
+
+- [GitHub: Customizing your repository's social media preview](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview)
+- [GitHub: Configuring advanced setup for code scanning](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configuring-advanced-setup-for-code-scanning)
+- [GitHub: About protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches)
+- [GitHub: Licensing a repository](https://docs.github.com/articles/licensing-a-repository)
