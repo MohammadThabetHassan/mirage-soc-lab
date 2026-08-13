@@ -2,10 +2,11 @@
 
 ## Current baseline
 
-The production dependency audit was rerun after the direct dependency updates in this hardening batch and reported **no known vulnerabilities** at the configured high-severity threshold. The validated command is:
+The production dependency audit and the full dependency audit were rerun after the public-release remediation and reported **no known vulnerabilities**. The validated commands are:
 
 ```bash
 pnpm security:audit
+pnpm audit
 ```
 
 This result is a point-in-time assessment, not a permanent guarantee. Dependency advisories change over time and must be reviewed continuously.
@@ -22,4 +23,4 @@ This result is a point-in-time assessment, not a permanent guarantee. Dependency
 
 ## Remediation batch
 
-The current batch upgrades the S3 SDK clients, tRPC packages, Axios, Streamdown, Express, Drizzle ORM, Nano ID, and Recharts. The chart adapter was updated for the Recharts v3 payload contracts and verified through the full quality command.
+The current public-release batch resolves the advisory-sensitive build chain by updating Vite, Vitest, Tailwind Vite tooling, Drizzle Kit, esbuild, and PostCSS. It removes an unmaintained JSX-location plugin that declared no Vite 7 compatibility, moves pnpm overrides and the Wouter patch into `pnpm-workspace.yaml`, removes pnpm from application dependencies, and pins affected transitive packages to security-fixed versions. The final full audit reports zero low, moderate, high, and critical findings; all changes were verified through the full quality and browser suites.

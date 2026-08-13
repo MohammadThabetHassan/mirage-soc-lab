@@ -18,6 +18,7 @@ No unreleased changes are currently recorded.
 
 - The public CodeQL workflow now uploads results to GitHub Code Scanning and retains SARIF evidence.
 - Dependabot alerts and automated security updates are enabled for the public repository.
+- The public build and test toolchain was remediated to a zero-advisory full dependency audit, with pnpm configuration moved to the supported workspace file.
 
 ## [1.0.0] — 2026-08-13
 
