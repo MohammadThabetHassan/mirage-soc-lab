@@ -21,3 +21,15 @@
 - [x] Add practical detection-engineering use cases, including telemetry readiness, analyst triage, and validation paths, and expose them consistently in code and documentation.
 - [x] Synchronize the README, package metadata, release notes, and contributor guidance with the GitHub Pages site and new practical capabilities.
 - [x] Verify the Pages deployment, protected-branch checks, security workflows, and release evidence after the enhancement cycle.
+- [ ] Add two or three safe, scenario-backed detection families with complete telemetry contracts, negative controls, triage boundaries, and regression tests.
+- [ ] Add an analyst exercise mode with rubric-based decisions, expected rationale prompts, and explicit scoring limited to controlled lab scenarios.
+- [ ] Add detection-catalog changelog and semantic versioning for rule, scenario, and ATT&CK mapping changes.
+- [ ] Add automated accessibility, static-link, and content-integrity checks for the GitHub Pages showcase and public README links.
+- [ ] Add visual regression coverage for public pages and authenticated analyst workflows at desktop and mobile breakpoints.
+- [ ] Add structured release notes, upgrade guidance, and a public roadmap aligned to the maintained detection catalog.
+- [ ] Add repository health automation for stale issues, dependency-update review, security-alert visibility, and a documented maintainer response process.
+- [ ] Define v1.2 catalog strategy, analytic-version, change-class, and evaluation-contract semantics with deterministic schema validation.
+- [ ] Add safe low-and-slow authentication-pressure and authorized-change-context behavior families with positive, benign, and threshold-edge scenarios.
+- [ ] Surface catalog version, strategy, analytic version, and evaluation-contract traceability in analyst evaluation and the public showcase.
+- [ ] Add static Pages link, semantic-heading, and repository-evidence validation to the public-site quality contract.
+- [ ] Publish a v1.2.0 changelog and verified release after all local and protected-branch checks pass.

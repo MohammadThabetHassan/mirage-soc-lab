@@ -28,15 +28,27 @@ export function buildAttackCoverageMatrix(scenarios: ScenarioEvaluation[]) {
       ruleId: rule.id,
       technique: `${mapping.techniqueId} — ${mapping.techniqueName}`,
       tactic: mapping.tactic,
+      strategyId: rule.strategy.id,
+      strategyName: rule.strategy.name,
+      analyticVersion: rule.analyticVersion,
+      changeClass: rule.changeClass,
       supportingEventFields: rule.inputFields,
       telemetryRequirements: rule.telemetryRequirements,
       evidenceField: rule.inputFields[0]!,
       scenarioIds,
       testCaseIds: scenarioIds,
+      positiveScenarioIds: rule.evaluationContract.positiveScenarioKeys,
+      controlScenarioIds: [
+        ...rule.evaluationContract.negativeScenarioKeys,
+        ...rule.evaluationContract.edgeScenarioKeys,
+      ],
       detectionLogic: `${thresholdSummary}; correlation window ${rule.correlationWindowMinutes} minutes.`,
       caveat: rule.expectedBenignCases.join(" "),
       triageBoundary: rule.triageGuidance.dispositionBoundary,
-      expectedResult: `Detect in ${scenarioIds.join(", ")}.`,
+      expectedResult: `Detect in ${rule.evaluationContract.positiveScenarioKeys.join(", ")}; remain silent in ${[
+        ...rule.evaluationContract.negativeScenarioKeys,
+        ...rule.evaluationContract.edgeScenarioKeys,
+      ].join(", ")}.`,
       currentStatus: observedByScenario.every(result => result.observed)
         ? "validated"
         : "gap",

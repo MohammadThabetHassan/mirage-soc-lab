@@ -238,16 +238,22 @@ export default function Evaluation() {
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1240px] text-left">
+              <table className="w-full min-w-[1460px] text-left">
                 <thead className="border-b border-cyan-400/10 bg-slate-950/25">
                   <tr className="neon-label text-[10px] text-slate-500">
                     <th className="px-5 py-3 font-medium">Technique</th>
+                    <th className="px-5 py-3 font-medium">
+                      Strategy / analytic
+                    </th>
                     <th className="px-5 py-3 font-medium">Evidence fields</th>
                     <th className="px-5 py-3 font-medium">
                       Telemetry prerequisites
                     </th>
                     <th className="px-5 py-3 font-medium">
                       Scenario / test cases
+                    </th>
+                    <th className="px-5 py-3 font-medium">
+                      Positive / control contract
                     </th>
                     <th className="px-5 py-3 font-medium">Detection logic</th>
                     <th className="px-5 py-3 font-medium">
@@ -270,6 +276,17 @@ export default function Evaluation() {
                           {item.ruleId}
                         </p>
                       </td>
+                      <td className="px-5 py-4">
+                        <p className="font-mono text-[11px] text-cyan-100">
+                          {item.strategyId}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-300">
+                          {item.strategyName}
+                        </p>
+                        <p className="mt-2 font-mono text-[10px] text-slate-500">
+                          {item.changeClass} · {item.analyticVersion}
+                        </p>
+                      </td>
                       <td className="px-5 py-4 font-mono text-[11px] text-slate-300">
                         {item.supportingEventFields.join(", ")}
                       </td>
@@ -285,6 +302,20 @@ export default function Evaluation() {
                       </td>
                       <td className="px-5 py-4 font-mono text-[11px] text-slate-300">
                         {item.testCaseIds.join(", ")}
+                      </td>
+                      <td className="px-5 py-4 text-xs leading-5 text-slate-400">
+                        <p>
+                          <span className="font-semibold text-emerald-200">
+                            Detect:
+                          </span>{" "}
+                          {item.positiveScenarioIds.join(", ")}
+                        </p>
+                        <p className="mt-2">
+                          <span className="font-semibold text-amber-200">
+                            Controls:
+                          </span>{" "}
+                          {item.controlScenarioIds.join(", ")}
+                        </p>
                       </td>
                       <td className="px-5 py-4 text-xs text-slate-400">
                         {item.detectionLogic}

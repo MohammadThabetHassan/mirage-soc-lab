@@ -17,11 +17,37 @@ describe("MIRAGE correlation engine", () => {
     expect(detectCases(generateScenario("benign-admin"))).toEqual([]);
   });
 
+  it("distinguishes sustained authentication pressure from retry and threshold controls", () => {
+    expect(
+      detectCases(generateScenario("low-and-slow-pressure")).map(
+        item => item.ruleId
+      )
+    ).toEqual(["low-and-slow-auth-pressure"]);
+    expect(detectCases(generateScenario("scheduled-service-retries"))).toEqual(
+      []
+    );
+    expect(detectCases(generateScenario("low-and-slow-boundary"))).toEqual([]);
+  });
+
+  it("requires both login context and an unapproved synthetic marker for policy changes", () => {
+    expect(
+      detectCases(generateScenario("unapproved-policy-change")).map(
+        item => item.ruleId
+      )
+    ).toEqual(["unapproved-access-policy-change"]);
+    expect(detectCases(generateScenario("authorized-policy-change"))).toEqual(
+      []
+    );
+    expect(detectCases(generateScenario("policy-change-without-auth"))).toEqual(
+      []
+    );
+  });
+
   it("reports deterministic evaluation metrics for the scenario definitions", () => {
     const evaluation = evaluateDefinitions();
     expect(evaluation.coverage).toBe(100);
     expect(evaluation.falsePositiveRate).toBe(0);
-    expect(evaluation.scenarios).toHaveLength(4);
+    expect(evaluation.scenarios).toHaveLength(10);
     expect(evaluation.classMetrics.map(item => item.classification)).toEqual([
       "known-positive",
       "known-benign",
@@ -66,6 +92,8 @@ describe("MIRAGE correlation engine", () => {
       "repeated-auth-failures",
       "success-after-failure",
       "multi-stage-sequence",
+      "low-and-slow-auth-pressure",
+      "unapproved-access-policy-change",
     ];
     expect(ATTACK_MAPPINGS.map(item => item.ruleId)).toEqual(ruleIds);
     ATTACK_MAPPINGS.forEach(item => {
@@ -84,6 +112,8 @@ describe("MIRAGE correlation engine", () => {
       expect(item.triageGuidance.dispositionBoundary.length).toBeGreaterThan(
         20
       );
+      expect(item.strategy.id).toMatch(/^STRAT-[A-Z0-9-]+$/);
+      expect(item.analyticVersion).toMatch(/^\d+\.\d+\.\d+$/);
       expect(item.referenceUrl).toMatch(
         /^https:\/\/attack\.mitre\.org\/techniques\//
       );

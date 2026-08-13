@@ -31,6 +31,12 @@ const scenarioSchema = z.enum([
   "full-pipeline",
   "credential-probe",
   "benign-admin",
+  "low-and-slow-pressure",
+  "scheduled-service-retries",
+  "low-and-slow-boundary",
+  "unapproved-policy-change",
+  "authorized-policy-change",
+  "policy-change-without-auth",
 ]);
 
 const actionLimiter = createSlidingWindowRateLimiter();

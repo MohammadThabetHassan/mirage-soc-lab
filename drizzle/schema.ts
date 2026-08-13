@@ -95,6 +95,7 @@ export const socEvents = mysqlTable(
       "auth_success",
       "decoy_interaction",
       "discovery",
+      "policy_change",
     ]).notNull(),
     command: varchar("command", { length: 255 }),
     message: text("message").notNull(),

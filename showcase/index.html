@@ -77,7 +77,7 @@
       <section id="use-cases" aria-labelledby="use-cases-title">
         <p class="eyebrow">Practical use cases</p>
         <h2 id="use-cases-title">
-          Four exercises that make a detection useful.
+          Six controlled exercises that make a detection useful.
         </h2>
         <p class="section-intro">
           Each exercise has a declared expected result. Positive scenarios show
@@ -117,6 +117,23 @@
               that the rule’s trigger is intentional and observable.
             </p>
             <span class="tag">Threshold boundary</span>
+          </article>
+          <article>
+            <h3>Separate sustained pressure from retries</h3>
+            <p>
+              Compare a longer source-bound failure sequence with scheduled
+              service retries and a one-event-below boundary before escalating
+              the controlled signal.
+            </p>
+            <span class="tag">Low-and-slow pressure</span>
+          </article>
+          <article>
+            <h3>Inspect change context, not a change alone</h3>
+            <p>
+              Require a matching login, a short time window, and an explicitly
+              unapproved synthetic marker before raising the controlled case.
+            </p>
+            <span class="tag">Policy-change context</span>
           </article>
         </div>
       </section>
@@ -168,8 +185,68 @@
                   story.
                 </td>
               </tr>
+              <tr>
+                <td>Low-and-slow authentication pressure</td>
+                <td>T1110 — Brute Force</td>
+                <td>
+                  Source-bound failures, count, minimum time span, and maximum
+                  correlation window
+                </td>
+                <td>
+                  Scheduled retries and just-below-threshold sequences remain
+                  documented controls.
+                </td>
+              </tr>
+              <tr>
+                <td>Unapproved synthetic access-policy change after login</td>
+                <td>T1098 — Account Manipulation</td>
+                <td>
+                  Source-bound login, synthetic change event, time window, and
+                  explicit approval-state marker
+                </td>
+                <td>
+                  This is a lab-only context exercise; it does not inspect or
+                  alter real access policies.
+                </td>
+              </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="catalog-traceability-title">
+        <p class="eyebrow">Catalog traceability</p>
+        <h2 id="catalog-traceability-title">
+          Versioned strategies, analytics, and controls.
+        </h2>
+        <p class="section-intro">
+          Catalog v1.2.0 separates the defensive strategy from the analytic
+          implementation. Every rule records an analytic version, change class,
+          positive scenario, and negative or edge control before it is presented
+          as validated evidence.
+        </p>
+        <div class="scope" aria-label="Catalog contract summary">
+          <div>
+            <strong>Strategy ID</strong>
+            <span
+              >Defines the defensive question shared by one or more
+              analytics.</span
+            >
+          </div>
+          <div>
+            <strong>Analytic version</strong>
+            <span
+              >Shows the versioned implementation that produced a lab
+              result.</span
+            >
+          </div>
+          <div>
+            <strong>Control contract</strong>
+            <span
+              >Requires positive, benign, and threshold or context
+              evidence.</span
+            >
+          </div>
         </div>
       </section>
 

@@ -128,6 +128,12 @@ describe("authenticated analyst journey", () => {
       "known-positive",
       "known-benign",
       "edge-case",
+      "known-positive",
+      "known-benign",
+      "edge-case",
+      "known-positive",
+      "known-benign",
+      "edge-case",
     ]);
     expect(
       evaluation.coverageMatrix.every(

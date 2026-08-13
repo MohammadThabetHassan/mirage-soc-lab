@@ -35,10 +35,10 @@ function event(
       | "message"
       | "target"
       | "sourceIp"
-      | "metadata"
     >
   > = {}
 ): LabEvent {
+  const { metadata, ...eventExtras } = extras;
   return {
     id: randomUUID(),
     scenarioKey,
@@ -47,8 +47,12 @@ function event(
     target,
     eventType,
     message,
-    metadata: { source: "mirage-synthetic-generator", generated: true },
-    ...extras,
+    metadata: {
+      source: "mirage-synthetic-generator",
+      generated: true,
+      ...metadata,
+    },
+    ...eventExtras,
   };
 }
 
@@ -68,6 +72,66 @@ export function generateScenario(scenarioKey: ScenarioKey): LabEvent[] {
         "discovery",
         "Approved maintenance inventory command recorded.",
         { username: "admin", command: "hostnamectl" }
+      ),
+    ];
+  }
+
+  if (
+    scenarioKey === "low-and-slow-pressure" ||
+    scenarioKey === "scheduled-service-retries" ||
+    scenarioKey === "low-and-slow-boundary"
+  ) {
+    const lowAndSlowRule = getRule("low-and-slow-auth-pressure");
+    const failureCount =
+      scenarioKey === "low-and-slow-pressure"
+        ? (lowAndSlowRule.threshold.minimumFailures ?? 0)
+        : scenarioKey === "low-and-slow-boundary"
+          ? Math.max(0, (lowAndSlowRule.threshold.minimumFailures ?? 1) - 1)
+          : Math.max(0, (lowAndSlowRule.threshold.minimumFailures ?? 2) - 2);
+    const intervalMinutes =
+      scenarioKey === "scheduled-service-retries" ? 20 : 10;
+    return Array.from({ length: failureCount }, (_, index) =>
+      event(
+        scenarioKey,
+        index * intervalMinutes,
+        "auth_failure",
+        "Synthetic controlled authentication failure recorded for sustained-pressure validation.",
+        { username: index % 2 ? "service-sync" : "ops" }
+      )
+    );
+  }
+
+  if (
+    scenarioKey === "unapproved-policy-change" ||
+    scenarioKey === "authorized-policy-change"
+  ) {
+    const approvalState = scenarioKey === "authorized-policy-change";
+    return [
+      event(
+        scenarioKey,
+        0,
+        "auth_success",
+        "Synthetic controlled authentication success recorded before access-policy context exercise.",
+        { username: "ops" }
+      ),
+      event(
+        scenarioKey,
+        6,
+        "policy_change",
+        "Synthetic access-policy change recorded for controlled context validation.",
+        { username: "ops", metadata: { approvalState } }
+      ),
+    ];
+  }
+
+  if (scenarioKey === "policy-change-without-auth") {
+    return [
+      event(
+        scenarioKey,
+        0,
+        "policy_change",
+        "Synthetic unapproved access-policy change recorded without authentication context.",
+        { username: "ops", metadata: { approvalState: false } }
       ),
     ];
   }
@@ -172,6 +236,9 @@ export function detectCases(events: LabEvent[]): DetectedCase[] {
   const success = sorted.find(item => item.eventType === "auth_success");
   const decoy = sorted.find(item => item.eventType === "decoy_interaction");
   const discovery = sorted.filter(item => item.eventType === "discovery");
+  const policyChanges = sorted.filter(
+    item => item.eventType === "policy_change"
+  );
   const detected: DetectedCase[] = [];
   const scenarioKey = sorted[0]?.scenarioKey ?? "unknown";
 
@@ -189,6 +256,26 @@ export function detectCases(events: LabEvent[]): DetectedCase[] {
   }
 
   const successRule = getRule("success-after-failure");
+  const lowAndSlowRule = getRule("low-and-slow-auth-pressure");
+  const lowAndSlowSpanMinutes =
+    ((failures.at(-1)?.occurredAt.getTime() ?? 0) -
+      (failures[0]?.occurredAt.getTime() ?? 0)) /
+    60_000;
+  if (
+    failures.length >=
+      (lowAndSlowRule.threshold.minimumFailures ?? Number.MAX_SAFE_INTEGER) &&
+    lowAndSlowSpanMinutes >=
+      (lowAndSlowRule.threshold.minimumSpanMinutes ??
+        Number.MAX_SAFE_INTEGER) &&
+    withinMinutes(failures, lowAndSlowRule.correlationWindowMinutes)
+  ) {
+    detected.push(
+      caseFrom(lowAndSlowRule, scenarioKey, failures, {
+        failureCount: failures.length,
+      })
+    );
+  }
+
   if (
     success &&
     failures.length >=
@@ -223,6 +310,25 @@ export function detectCases(events: LabEvent[]): DetectedCase[] {
       caseFrom(multiStageRule, scenarioKey, allSequenceEvents, {
         failureCount: failures.length,
       })
+    );
+  }
+
+  const policyChangeRule = getRule("unapproved-access-policy-change");
+  const unapprovedPolicyChange = policyChanges.find(
+    item => item.metadata.approvalState === false
+  );
+  if (
+    success &&
+    unapprovedPolicyChange &&
+    policyChangeRule.threshold.requiresAuthSuccess !== false &&
+    unapprovedPolicyChange.occurredAt.getTime() >=
+      success.occurredAt.getTime() &&
+    unapprovedPolicyChange.occurredAt.getTime() -
+      success.occurredAt.getTime() <=
+      policyChangeRule.correlationWindowMinutes * 60_000
+  ) {
+    detected.push(
+      caseFrom(policyChangeRule, scenarioKey, [success, unapprovedPolicyChange])
     );
   }
 

@@ -3,6 +3,7 @@ export const EVENT_TYPES = [
   "auth_success",
   "decoy_interaction",
   "discovery",
+  "policy_change",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -64,6 +65,18 @@ export type AttackMapping = {
   techniqueId: string;
   techniqueName: string;
   tactic: string;
+  strategy: {
+    id: string;
+    name: string;
+    objective: string;
+  };
+  analyticVersion: string;
+  changeClass: "new" | "revised";
+  evaluationContract: {
+    positiveScenarioKeys: string[];
+    negativeScenarioKeys: string[];
+    edgeScenarioKeys: string[];
+  };
   rationale: string;
   caveat: string;
   referenceUrl: string;

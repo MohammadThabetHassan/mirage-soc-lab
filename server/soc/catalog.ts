@@ -16,16 +16,32 @@ const triageGuidanceSchema = z.object({
   investigationQuestions: z.array(z.string().min(1)).min(2),
   dispositionBoundary: z.string().min(1),
 });
+const strategySchema = z.object({
+  id: z.string().regex(/^STRAT-[A-Z0-9-]+$/),
+  name: z.string().min(3),
+  objective: z.string().min(20),
+});
+const evaluationContractSchema = z.object({
+  positiveScenarioKeys: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
+  negativeScenarioKeys: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
+  edgeScenarioKeys: z.array(z.string().regex(/^[a-z0-9-]+$/)).min(1),
+});
 const ruleSchema = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string().min(1),
   summary: z.string().min(1),
+  strategy: strategySchema,
+  analyticVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
+  changeClass: z.enum(["new", "revised"]),
+  evaluationContract: evaluationContractSchema,
   inputFields: z.array(z.string().min(1)).min(1),
   telemetryRequirements: z.array(telemetryRequirementSchema).min(1),
   triageGuidance: triageGuidanceSchema,
   threshold: z.object({
     minimumFailures: z.number().int().min(0).optional(),
     minimumDiscoveryEvents: z.number().int().min(0).optional(),
+    minimumPolicyChanges: z.number().int().min(0).optional(),
+    minimumSpanMinutes: z.number().int().min(0).optional(),
     requiresDecoyInteraction: z.boolean().optional(),
     requiresAuthSuccess: z.boolean().optional(),
   }),
@@ -68,6 +84,9 @@ const catalogSchema = z
   })
   .superRefine((catalog, ctx) => {
     const ids = new Set(catalog.rules.map(rule => rule.id));
+    const scenarioByKey = new Map(
+      catalog.scenarios.map(scenario => [scenario.key, scenario])
+    );
     if (ids.size !== catalog.rules.length)
       ctx.addIssue({ code: "custom", message: "Rule IDs must be unique." });
     for (const scenario of catalog.scenarios) {
@@ -77,6 +96,43 @@ const catalogSchema = z
             code: "custom",
             message: `Scenario ${scenario.key} references missing rule ${ruleId}.`,
           });
+      }
+    }
+    for (const rule of catalog.rules) {
+      const contract = rule.evaluationContract;
+      const referencedScenarioKeys = [
+        ...contract.positiveScenarioKeys,
+        ...contract.negativeScenarioKeys,
+        ...contract.edgeScenarioKeys,
+      ];
+      for (const scenarioKey of referencedScenarioKeys) {
+        if (!scenarioByKey.has(scenarioKey)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Rule ${rule.id} references missing evaluation scenario ${scenarioKey}.`,
+          });
+        }
+      }
+      for (const scenarioKey of contract.positiveScenarioKeys) {
+        if (
+          !scenarioByKey.get(scenarioKey)?.expectedRuleIds.includes(rule.id)
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Rule ${rule.id} must be expected by positive scenario ${scenarioKey}.`,
+          });
+        }
+      }
+      for (const scenarioKey of [
+        ...contract.negativeScenarioKeys,
+        ...contract.edgeScenarioKeys,
+      ]) {
+        if (scenarioByKey.get(scenarioKey)?.expectedRuleIds.includes(rule.id)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Rule ${rule.id} must not be expected by control scenario ${scenarioKey}.`,
+          });
+        }
       }
     }
   });
@@ -105,6 +161,10 @@ export const ATTACK_MAPPINGS: AttackMapping[] = DETECTION_RULES.flatMap(rule =>
     techniqueId: mapping.techniqueId,
     techniqueName: mapping.techniqueName,
     tactic: mapping.tactic,
+    strategy: rule.strategy,
+    analyticVersion: rule.analyticVersion,
+    changeClass: rule.changeClass,
+    evaluationContract: rule.evaluationContract,
     rationale: rule.summary,
     caveat: rule.expectedBenignCases.join(" "),
     referenceUrl: mapping.referenceUrl,

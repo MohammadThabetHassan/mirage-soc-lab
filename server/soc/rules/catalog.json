@@ -1,10 +1,22 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "rules": [
     {
       "id": "repeated-auth-failures",
       "title": "Repeated SSH authentication failures",
       "summary": "A source generated a concentrated authentication-failure burst against the controlled decoy gateway.",
+      "strategy": {
+        "id": "STRAT-AUTH-PRESSURE",
+        "name": "Authentication pressure correlation",
+        "objective": "Identify source-bound authentication pressure while distinguishing a rapid burst from normal retries."
+      },
+      "analyticVersion": "1.2.0",
+      "changeClass": "revised",
+      "evaluationContract": {
+        "positiveScenarioKeys": ["full-pipeline", "credential-probe"],
+        "negativeScenarioKeys": ["benign-admin"],
+        "edgeScenarioKeys": ["threshold-boundary"]
+      },
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
       "telemetryRequirements": [
         {
@@ -67,6 +79,18 @@
       "id": "success-after-failure",
       "title": "Successful login after repeated failures",
       "summary": "A successful authentication followed a concentrated series of failures from the same source.",
+      "strategy": {
+        "id": "STRAT-POST-AUTH-CONTEXT",
+        "name": "Post-authentication context correlation",
+        "objective": "Assess a later authentication success using the immediately preceding failure sequence and bounded source context."
+      },
+      "analyticVersion": "1.2.0",
+      "changeClass": "revised",
+      "evaluationContract": {
+        "positiveScenarioKeys": ["full-pipeline", "credential-probe"],
+        "negativeScenarioKeys": ["benign-admin"],
+        "edgeScenarioKeys": ["threshold-boundary"]
+      },
       "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
       "telemetryRequirements": [
         {
@@ -129,6 +153,18 @@
       "id": "multi-stage-sequence",
       "title": "Multi-stage decoy engagement and discovery",
       "summary": "Correlated credential activity, decoy engagement, and discovery-like behavior formed a complete lab attack story.",
+      "strategy": {
+        "id": "STRAT-SEQUENCE-CORRELATION",
+        "name": "Multi-stage behavior sequence correlation",
+        "objective": "Require a complete, ordered synthetic sequence before elevating a discovery-like observation."
+      },
+      "analyticVersion": "1.2.0",
+      "changeClass": "revised",
+      "evaluationContract": {
+        "positiveScenarioKeys": ["full-pipeline"],
+        "negativeScenarioKeys": ["benign-admin"],
+        "edgeScenarioKeys": ["threshold-boundary"]
+      },
       "inputFields": ["eventType", "sourceIp", "occurredAt", "command"],
       "telemetryRequirements": [
         {
@@ -193,6 +229,169 @@
           "label": "Discovery sequence",
           "points": 32,
           "rationale": "Discovery-like command events followed the session."
+        }
+      ]
+    },
+    {
+      "id": "low-and-slow-auth-pressure",
+      "title": "Low-and-slow authentication pressure",
+      "summary": "A source sustained authentication failures across a longer bounded window, meeting the controlled low-and-slow pressure contract without matching the rapid-burst profile.",
+      "strategy": {
+        "id": "STRAT-AUTH-PRESSURE",
+        "name": "Authentication pressure correlation",
+        "objective": "Identify sustained source-bound authentication pressure while keeping ordinary retry behavior outside the rule boundary."
+      },
+      "analyticVersion": "1.0.0",
+      "changeClass": "new",
+      "evaluationContract": {
+        "positiveScenarioKeys": ["low-and-slow-pressure"],
+        "negativeScenarioKeys": ["scheduled-service-retries"],
+        "edgeScenarioKeys": ["low-and-slow-boundary"]
+      },
+      "inputFields": ["eventType", "sourceIp", "occurredAt", "username"],
+      "telemetryRequirements": [
+        {
+          "field": "eventType",
+          "purpose": "Restrict correlation to controlled authentication failures."
+        },
+        {
+          "field": "sourceIp",
+          "purpose": "Keep the sustained sequence attributable to one synthetic source."
+        },
+        {
+          "field": "occurredAt",
+          "purpose": "Verify both the longer minimum span and the bounded maximum correlation window."
+        }
+      ],
+      "triageGuidance": {
+        "investigationQuestions": [
+          "Does one source meet the failure threshold across the required minimum span without exceeding the maximum window?",
+          "Is the sequence distinct from documented scheduled retries and below-threshold activity?"
+        ],
+        "dispositionBoundary": "Treat the controlled match as a sustained-pressure exercise only; ordinary retries, insufficient counts, and rapid bursts belong to different lab boundaries."
+      },
+      "threshold": {
+        "minimumFailures": 5,
+        "minimumSpanMinutes": 30
+      },
+      "correlationWindowMinutes": 60,
+      "mitreMappings": [
+        {
+          "techniqueId": "T1110",
+          "techniqueName": "Brute Force",
+          "tactic": "Credential Access",
+          "referenceUrl": "https://attack.mitre.org/techniques/T1110/"
+        }
+      ],
+      "expectedBenignCases": [
+        "Scheduled service retries and intermittent administrative mistakes that do not meet the stated count and span contract."
+      ],
+      "severityGuidance": {
+        "severity": "medium",
+        "riskScore": 63,
+        "rationale": "Sustained controlled pressure deserves review but remains below the complete multi-stage lab story."
+      },
+      "riskScoreFactors": [
+        {
+          "label": "Sustained failure count",
+          "points": 25,
+          "rationale": "Failure count meets the configured low-and-slow threshold."
+        },
+        {
+          "label": "Minimum time span",
+          "points": 20,
+          "rationale": "The activity persists long enough to meet the sustained-pressure contract."
+        },
+        {
+          "label": "Source continuity",
+          "points": 18,
+          "rationale": "Every correlated failure comes from the same controlled source."
+        }
+      ]
+    },
+    {
+      "id": "unapproved-access-policy-change",
+      "title": "Unapproved synthetic access-policy change after login",
+      "summary": "A successful synthetic login was followed by a source-bound access-policy change that lacked the required controlled approval marker.",
+      "strategy": {
+        "id": "STRAT-CHANGE-CONTEXT",
+        "name": "Authorized-change context correlation",
+        "objective": "Separate an unapproved synthetic access-policy change from a documented authorized-change control."
+      },
+      "analyticVersion": "1.0.0",
+      "changeClass": "new",
+      "evaluationContract": {
+        "positiveScenarioKeys": ["unapproved-policy-change"],
+        "negativeScenarioKeys": ["authorized-policy-change"],
+        "edgeScenarioKeys": ["policy-change-without-auth"]
+      },
+      "inputFields": [
+        "eventType",
+        "sourceIp",
+        "occurredAt",
+        "metadata.approvalState"
+      ],
+      "telemetryRequirements": [
+        {
+          "field": "eventType",
+          "purpose": "Require a controlled authentication success and synthetic policy-change event."
+        },
+        {
+          "field": "sourceIp",
+          "purpose": "Bind the login and change event to one controlled source."
+        },
+        {
+          "field": "occurredAt",
+          "purpose": "Verify the policy change follows the login inside the bounded window."
+        },
+        {
+          "field": "metadata.approvalState",
+          "purpose": "Distinguish the synthetic unapproved-change exercise from the authorized-change negative control."
+        }
+      ],
+      "triageGuidance": {
+        "investigationQuestions": [
+          "Did a controlled authentication success precede the synthetic policy change for the same source?",
+          "Is the approval-state marker explicitly false rather than missing or approved?"
+        ],
+        "dispositionBoundary": "This rule models a synthetic training event only; it does not inspect or alter real access policies and cannot establish production authorization context."
+      },
+      "threshold": {
+        "minimumPolicyChanges": 1,
+        "requiresAuthSuccess": true
+      },
+      "correlationWindowMinutes": 15,
+      "mitreMappings": [
+        {
+          "techniqueId": "T1098",
+          "techniqueName": "Account Manipulation",
+          "tactic": "Persistence",
+          "referenceUrl": "https://attack.mitre.org/techniques/T1098/"
+        }
+      ],
+      "expectedBenignCases": [
+        "A documented synthetic authorized policy change and a policy-change event without the required preceding login context."
+      ],
+      "severityGuidance": {
+        "severity": "high",
+        "riskScore": 78,
+        "rationale": "A source-bound unapproved synthetic change after login is a focused analyst-context exercise."
+      },
+      "riskScoreFactors": [
+        {
+          "label": "Source-bound login",
+          "points": 32,
+          "rationale": "A controlled authentication success precedes the change from the same source."
+        },
+        {
+          "label": "Unapproved change marker",
+          "points": 26,
+          "rationale": "The synthetic approval-state marker is explicitly false."
+        },
+        {
+          "label": "Temporal proximity",
+          "points": 20,
+          "rationale": "The change occurs inside the configured correlation window."
         }
       ]
     }
@@ -262,6 +461,102 @@
           "Change the threshold only with a corresponding scenario and regression-test update."
         ],
         "expectedOutcome": "No case is created, demonstrating a precise and testable correlation boundary."
+      },
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "low-and-slow-pressure",
+      "label": "Low-and-slow authentication pressure",
+      "description": "Sustained authentication failures from one controlled source across a longer bounded window.",
+      "useCase": {
+        "learningObjective": "Practice distinguishing sustained authentication pressure from both rapid bursts and ordinary scheduled retries.",
+        "validationSteps": [
+          "Replay the sustained-pressure scenario from the analyst workspace.",
+          "Confirm that the rapid-burst rule does not fire because the sequence exceeds its shorter window.",
+          "Validate the low-and-slow case against its count, source, minimum span, and maximum-window contract."
+        ],
+        "expectedOutcome": "One medium-severity low-and-slow authentication-pressure detection is created."
+      },
+      "classification": "known-positive",
+      "expectedRuleIds": ["low-and-slow-auth-pressure"]
+    },
+    {
+      "key": "scheduled-service-retries",
+      "label": "Scheduled service retries",
+      "description": "Intermittent controlled service retries that remain below the sustained-pressure count contract.",
+      "useCase": {
+        "learningObjective": "Use a documented retry pattern as a negative control for the low-and-slow authentication rule.",
+        "validationSteps": [
+          "Replay the scheduled-retry scenario.",
+          "Confirm that the observed failure count remains below the low-and-slow threshold.",
+          "Record the no-alert result as evidence that ordinary retries stay outside the current boundary."
+        ],
+        "expectedOutcome": "No case is created; the scenario remains a negative control."
+      },
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "low-and-slow-boundary",
+      "label": "Low-and-slow threshold boundary",
+      "description": "One fewer sustained failure than the low-and-slow authentication-pressure threshold.",
+      "useCase": {
+        "learningObjective": "Prove that sustained-pressure detection begins only when both the configured count and span are met.",
+        "validationSteps": [
+          "Replay the low-and-slow boundary scenario.",
+          "Verify that the span is sufficient but the failure count is one event below the threshold.",
+          "Confirm that no case is created before changing the detection threshold."
+        ],
+        "expectedOutcome": "No case is created, demonstrating a precise sustained-pressure count boundary."
+      },
+      "classification": "edge-case",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "unapproved-policy-change",
+      "label": "Unapproved synthetic policy change",
+      "description": "A controlled login is followed by a synthetic access-policy change with an explicit unapproved marker.",
+      "useCase": {
+        "learningObjective": "Practice using authentication context and an approval-state signal together before elevating a synthetic change event.",
+        "validationSteps": [
+          "Replay the unapproved synthetic policy-change scenario.",
+          "Confirm the login and change share a source and occur in the configured window.",
+          "Inspect the explicit unapproved marker and compare the result to the authorized-change control."
+        ],
+        "expectedOutcome": "One high-severity synthetic access-policy-change detection is created."
+      },
+      "classification": "known-positive",
+      "expectedRuleIds": ["unapproved-access-policy-change"]
+    },
+    {
+      "key": "authorized-policy-change",
+      "label": "Authorized synthetic policy change",
+      "description": "A controlled login is followed by a synthetic access-policy change with an explicit approved marker.",
+      "useCase": {
+        "learningObjective": "Validate that an authorized synthetic change remains outside the unapproved-change detection boundary.",
+        "validationSteps": [
+          "Replay the authorized synthetic policy-change scenario.",
+          "Confirm the policy-change event carries an explicit approved marker.",
+          "Verify that no unapproved-change case is created despite matching source and timing context."
+        ],
+        "expectedOutcome": "No case is created; approval state remains a required observable control."
+      },
+      "classification": "known-benign",
+      "expectedRuleIds": []
+    },
+    {
+      "key": "policy-change-without-auth",
+      "label": "Synthetic policy change without login context",
+      "description": "An unapproved-marked synthetic policy-change event without the required preceding authentication context.",
+      "useCase": {
+        "learningObjective": "Demonstrate that a policy-change signal alone does not satisfy the current correlation contract.",
+        "validationSteps": [
+          "Replay the policy-change-without-auth edge scenario.",
+          "Confirm the change marker is unapproved but no matching authentication success is present.",
+          "Verify that the detector does not create a case when the required context is absent."
+        ],
+        "expectedOutcome": "No case is created, preserving the login-context requirement."
       },
       "classification": "edge-case",
       "expectedRuleIds": []

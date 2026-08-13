@@ -54,7 +54,15 @@ export default function Home() {
   const utils = trpc.useUtils();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [selectedScenario, setSelectedScenario] = useState<
-    "full-pipeline" | "credential-probe" | "benign-admin"
+    | "full-pipeline"
+    | "credential-probe"
+    | "benign-admin"
+    | "low-and-slow-pressure"
+    | "scheduled-service-retries"
+    | "low-and-slow-boundary"
+    | "unapproved-policy-change"
+    | "authorized-policy-change"
+    | "policy-change-without-auth"
   >("full-pipeline");
   const [analystNote, setAnalystNote] = useState("");
   const snapshot = trpc.soc.snapshot.useQuery(undefined, {
@@ -174,6 +182,24 @@ export default function Home() {
             <option value="full-pipeline">Full pipeline story</option>
             <option value="credential-probe">Credential probe</option>
             <option value="benign-admin">Benign admin activity</option>
+            <option value="low-and-slow-pressure">
+              Low-and-slow authentication pressure
+            </option>
+            <option value="scheduled-service-retries">
+              Scheduled service retries
+            </option>
+            <option value="low-and-slow-boundary">
+              Low-and-slow threshold boundary
+            </option>
+            <option value="unapproved-policy-change">
+              Unapproved synthetic policy change
+            </option>
+            <option value="authorized-policy-change">
+              Authorized synthetic policy change
+            </option>
+            <option value="policy-change-without-auth">
+              Policy change without login context
+            </option>
           </select>
           <button
             onClick={() => runner.mutate({ scenarioKey: selectedScenario })}
@@ -544,6 +570,18 @@ export default function Home() {
                 <p className="text-xs leading-5 text-slate-400">
                   {mapping.rationale}
                 </p>
+                <p className="mt-3 border-l border-cyan-400/30 pl-3 text-[11px] leading-5 text-slate-300">
+                  <span className="font-mono text-cyan-200">
+                    {mapping.strategy.id}
+                  </span>{" "}
+                  · {mapping.strategy.name} · analytic {mapping.analyticVersion}{" "}
+                  ({mapping.changeClass}) ·{" "}
+                  {mapping.evaluationContract.positiveScenarioKeys.length}{" "}
+                  positive /{" "}
+                  {mapping.evaluationContract.negativeScenarioKeys.length +
+                    mapping.evaluationContract.edgeScenarioKeys.length}{" "}
+                  control scenarios
+                </p>
                 <div className="mt-3 rounded-lg border border-cyan-400/15 bg-cyan-400/5 p-3">
                   <p className="neon-label mb-2 text-[9px] text-cyan-300">
                     Telemetry prerequisites
@@ -570,6 +608,22 @@ export default function Home() {
                       )
                     )}
                   </ul>
+                </div>
+                <div className="mt-3 rounded-lg border border-emerald-400/15 bg-emerald-400/5 p-3">
+                  <p className="neon-label mb-2 text-[9px] text-emerald-200">
+                    Contract
+                  </p>
+                  <p className="text-xs leading-5 text-slate-400">
+                    Detect:{" "}
+                    {mapping.evaluationContract.positiveScenarioKeys.join(", ")}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                    Controls:{" "}
+                    {[
+                      ...mapping.evaluationContract.negativeScenarioKeys,
+                      ...mapping.evaluationContract.edgeScenarioKeys,
+                    ].join(", ")}
+                  </p>
                 </div>
                 <div className="mt-3 rounded-lg border border-amber-400/15 bg-amber-400/5 p-3">
                   <p className="neon-label mb-1 text-[9px] text-amber-300">
