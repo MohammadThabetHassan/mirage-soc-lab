@@ -21,7 +21,7 @@ _The signal prism is MIRAGE’s compact project mark. The social-preview artwork
 | Capability                   | What it provides                                                                                                                                                  |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Controlled telemetry         | Deterministic scenario replay and bounded, redacted imports from a private Cowrie lab fixture.                                                                    |
-| Detection-as-code            | Versioned rules, thresholds, scoring rationale, ATT&CK context, and regression scenarios.                                                                         |
+| Detection-as-code            | Versioned strategies and analytics, thresholds, scoring rationale, ATT&CK context, evaluation controls, and regression scenarios.                                 |
 | Explainable analyst workflow | Evidence timelines, risk-factor breakdowns, analyst notes, dispositions, and case histories.                                                                      |
 | Integrity assurance          | Atomic persistence, append-only disposition history, hash-chained evidence lineage, and verification status.                                                      |
 | Repeatable quality           | Formatting, unit tests, strict TypeScript, production build, bundle budget, MySQL integration, CodeQL, dependency audit, and desktop/mobile browser smoke checks. |
@@ -84,7 +84,7 @@ Open the local URL, choose **Sign in to continue**, and complete the configured 
 
 1. Select **Full pipeline story** and choose **Run demo scenario**.
 2. Review the three generated cases: repeated authentication failures, success after failure, and multi-stage decoy/discovery activity.
-3. Open a case to inspect its evidence timeline, deterministic risk factors, and ATT&CK mapping.
+3. Open a case to inspect its evidence timeline, deterministic risk factors, ATT&CK mapping, strategy identifier, analytic version, and evaluation controls.
 4. Record an analyst note and disposition, then review the immutable history and integrity-verification status.
 5. Open **Evaluation** to review deterministic scenario metrics. The benign-admin scenario should produce no cases.
 
@@ -92,27 +92,31 @@ Open the local URL, choose **Sign in to continue**, and complete the configured 
 
 MIRAGE is designed for controlled practice and validation rather than production monitoring. Each scenario is a versioned playbook with a learning objective, three validation steps, and an expected outcome in the detection catalog. The **Evaluation** workspace surfaces this guidance beside the observed result so an analyst can connect an exercise to a testable decision.
 
-| Exercise              | Practical question                                                                                  | Expected result                                                              |
-| --------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Full pipeline story   | Did a rule or parser change preserve the complete credential-to-decoy-to-discovery detection path?  | All three documented detections appear with source-bound evidence.           |
-| Credential probe      | Does a success after failures deserve review when source continuity and time window are considered? | Two explainable lab detections appear; the triage boundary remains explicit. |
-| Benign admin activity | Does approved administration remain outside the detection boundary?                                 | No case is created; the scenario acts as a negative control.                 |
-| Threshold boundary    | Does the repeated-failure rule start precisely at its configured threshold?                         | No case is created one event below the threshold.                            |
+| Exercise                           | Practical question                                                                                  | Expected result                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Full pipeline story                | Did a rule or parser change preserve the complete credential-to-decoy-to-discovery detection path?  | All three documented detections appear with source-bound evidence.           |
+| Credential probe                   | Does a success after failures deserve review when source continuity and time window are considered? | Two explainable lab detections appear; the triage boundary remains explicit. |
+| Benign admin activity              | Does approved administration remain outside the detection boundary?                                 | No case is created; the scenario acts as a negative control.                 |
+| Threshold boundary                 | Does the repeated-failure rule start precisely at its configured threshold?                         | No case is created one event below the threshold.                            |
+| Low-and-slow pressure              | Does a sustained source-bound failure sequence meet its separate count, span, and window contract?  | One medium-severity sustained-pressure case is created.                      |
+| Scheduled service retries          | Do documented retry failures remain outside the sustained-pressure contract?                        | No case is created; the scenario is a negative control.                      |
+| Unapproved synthetic policy change | Does a login plus an explicitly unapproved synthetic change meet the context rule?                  | One high-severity controlled context case is created.                        |
+| Authorized policy change           | Does an explicit approved marker suppress the unapproved-change rule?                               | No case is created; approval state is a required control.                    |
 
 ## Verification and quality gates
 
-| Command                 | Purpose                                                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `pnpm format:check`     | Enforces repository formatting.                                                                                |
-| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests.                            |
-| `pnpm check`            | Runs strict TypeScript validation.                                                                             |
-| `pnpm build`            | Produces the browser and server production bundles.                                                            |
-| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.                                        |
-| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                                           |
-| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                                           |
-| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                                                |
-| `pnpm check:showcase`   | Verifies required public content, GitHub links, safety statement, and responsive CSS in the static Pages site. |
-| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.                                 |
+| Command                 | Purpose                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm format:check`     | Enforces repository formatting.                                                                                                                  |
+| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests.                                                              |
+| `pnpm check`            | Runs strict TypeScript validation.                                                                                                               |
+| `pnpm build`            | Produces the browser and server production bundles.                                                                                              |
+| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.                                                                          |
+| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                                                                             |
+| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                                                                             |
+| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                                                                                  |
+| `pnpm check:showcase`   | Verifies public content, one semantic page heading, repository-evidence links, approved link destinations, safety statement, and responsive CSS. |
+| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.                                                                   |
 
 The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; results are published to GitHub Code Scanning and retained as SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails. A separate GitHub Pages workflow validates and deploys only the versioned static showcase after changes to `showcase/` or its deployment contract.
 
@@ -131,6 +135,8 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 | [Public Release Checklist](docs/PUBLIC_RELEASE_CHECKLIST.md)                 | Safe visibility-change, social-preview, security, and governance actions.     |
 | [Dependency Security](docs/DEPENDENCY_SECURITY.md)                           | Dependency audit policy and remediation history.                              |
 | [Detection Engineering Guide](docs/DETECTION_ENGINEERING_GUIDE.md)           | Rule contract, ATT&CK context, telemetry prerequisites, and safe triage.      |
+| [Enhancement Roadmap](docs/ENHANCEMENT_ROADMAP.md)                           | Prioritized controlled-platform roadmap, scope boundaries, and release plan.  |
+| [Changelog](CHANGELOG.md)                                                    | Versioned product, catalog, migration, and public-site change history.        |
 | [GitHub Pages Guide](docs/GITHUB_PAGES.md)                                   | Static showcase source, deployment permissions, and verification procedure.   |
 | [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.               |
 | [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                      |
@@ -140,11 +146,12 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 
 ## Detection and ATT&CK context
 
-The included deterministic rules model repeated authentication failures, success after failure, and a multi-stage decoy/discovery sequence. The evaluation corpus labels known positives, a known benign case, and an edge case. Each scenario also records its learning objective, validation steps, and expected outcome. Each rule records technique, tactic, rationale, telemetry prerequisites, triage boundary, caveat, and reference links.
+The versioned v1.2 catalog contains five deterministic rules: repeated authentication failures, success after failure, multi-stage decoy/discovery, low-and-slow authentication pressure, and a synthetic unapproved access-policy change after login. Each rule records a defensive strategy, analytic version, change class, evaluation contract, technique, tactic, rationale, telemetry prerequisites, triage boundary, caveat, and reference links. The corpus contains positive, known-benign, and edge scenarios with a learning objective, three validation steps, and an expected outcome.
 
 - [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/)
 - [T1078 — Valid Accounts](https://attack.mitre.org/techniques/T1078/)
 - [T1087 — Account Discovery](https://attack.mitre.org/techniques/T1087/)
+- [T1098 — Account Manipulation](https://attack.mitre.org/techniques/T1098/)
 
 ## Contributing and support
 

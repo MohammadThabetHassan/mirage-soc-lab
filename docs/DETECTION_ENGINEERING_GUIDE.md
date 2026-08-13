@@ -37,9 +37,23 @@ Each catalog scenario now contains a `useCase` object with a learning objective,
 | `benign-admin`       | Authorized administration remains outside the current correlation rules.           | No case is created, providing a documented negative control.             |
 | `threshold-boundary` | The repeated-failure rule begins only at its declared threshold.                   | No case is created one event below the configured limit.                 |
 
+## v1.2 strategy, analytic, and control contract
+
+MIRAGE v1.2 separates a **strategy**—the defensive question—from an **analytic**—the deterministic implementation that answers it in controlled telemetry. Each rule now declares a stable strategy identifier, an analytic semantic version, a `new` or `revised` change class, and an evaluation contract that names the required positive, benign, and edge scenarios. This mirrors the distinction in ATT&CK between a high-level detection strategy and its platform-specific analytics. [1]
+
+| Rule                              | Strategy                     | Analytic | Positive contract                   | Control contract                                    |
+| --------------------------------- | ---------------------------- | -------- | ----------------------------------- | --------------------------------------------------- |
+| `repeated-auth-failures`          | `STRAT-AUTH-PRESSURE`        | `1.2.0`  | Full pipeline and credential probe. | Benign admin and rapid threshold boundary.          |
+| `success-after-failure`           | `STRAT-POST-AUTH-CONTEXT`    | `1.2.0`  | Full pipeline and credential probe. | Benign admin and rapid threshold boundary.          |
+| `multi-stage-sequence`            | `STRAT-SEQUENCE-CORRELATION` | `1.2.0`  | Full pipeline.                      | Benign admin and rapid threshold boundary.          |
+| `low-and-slow-auth-pressure`      | `STRAT-AUTH-PRESSURE`        | `1.0.0`  | Sustained pressure.                 | Scheduled retries and sustained threshold boundary. |
+| `unapproved-access-policy-change` | `STRAT-CHANGE-CONTEXT`       | `1.0.0`  | Unapproved synthetic policy change. | Authorized change and change without login context. |
+
+The low-and-slow and policy-change scenarios are fully synthetic. They neither generate traffic nor inspect a real access policy. A change to a rule must update its analytic version when behavior, telemetry, threshold, or triage boundary changes, revise its control scenarios when the boundary moves, and provide an evaluation result before release.
+
 ## How to add or revise a rule
 
-Start by defining a narrow lab behavior and its allowed telemetry fields. Specify the ATT&CK rationale only after the behavior is clear. Then state the exact telemetry prerequisites, at least two investigation questions, a disposition boundary, and a benign explanation. Add or update deterministic scenario expectations **and** a practical `useCase` playbook, then run the catalog, engine, browser, showcase, and quality gates.
+Start by defining a narrow lab behavior and its allowed telemetry fields. Specify the ATT&CK rationale only after the behavior is clear. Then state the exact telemetry prerequisites, at least two investigation questions, a disposition boundary, and a benign explanation. Add or update the strategy, analytic version, change class, evaluation contract, deterministic scenario expectations, and practical `useCase` playbook, then run the catalog, engine, browser, showcase, migration, and quality gates.
 
 | Review question                  | Evidence of completion                                                                            |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- |

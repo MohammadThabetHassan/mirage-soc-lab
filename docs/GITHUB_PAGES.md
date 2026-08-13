@@ -4,14 +4,14 @@ MIRAGE publishes a small, static project showcase from `showcase/`. It deliberat
 
 ## Source and validation
 
-| Location                      | Responsibility                                                                                                 |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `showcase/index.html`         | Public copy, accessible information structure, repository evidence links, and controlled-scope statement.      |
-| `showcase/styles.css`         | Responsive, restrained visual presentation with no external asset dependency.                                  |
-| `scripts/check-showcase.mjs`  | Static contract: required content, safe repository links, absence of retired preview URLs, and responsive CSS. |
-| `.github/workflows/pages.yml` | Validates the static contract, packages `showcase/`, and deploys the artifact to GitHub Pages.                 |
+| Location                      | Responsibility                                                                                                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `showcase/index.html`         | Public copy, accessible information structure, repository evidence links, and controlled-scope statement.                                                                    |
+| `showcase/styles.css`         | Responsive, restrained visual presentation with no external asset dependency.                                                                                                |
+| `scripts/check-showcase.mjs`  | Static contract: required content, one `h1`, semantic landmarks, safe repository-evidence links, approved destinations, absence of retired preview URLs, and responsive CSS. |
+| `.github/workflows/pages.yml` | Validates the static contract, packages `showcase/`, and deploys the artifact to GitHub Pages.                                                                               |
 
-Run `pnpm check:showcase` before changing public copy or styles. The command is also included in `pnpm quality`, so a showcase regression blocks the standard quality gate.
+Run `pnpm check:showcase` before changing public copy or styles. The command is also included in `pnpm quality`, so a showcase regression blocks the standard quality gate. The site deliberately uses no external runtime assets, analytics, or illustrative claims that cannot be traced to versioned repository content.
 
 ## Deployment model
 
