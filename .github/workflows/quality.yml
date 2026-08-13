@@ -74,7 +74,7 @@ jobs:
         run: pnpm test:browser
       - name: Upload browser failure report
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ github.run_id }}
           path: |
