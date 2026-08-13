@@ -1,6 +1,6 @@
 {
   "name": "mirage-soc-lab",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Controlled SOC lab for deterministic detection engineering, analyst workflow training, and evaluation.",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab.git"
   },
-  "homepage": "https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer",
+  "homepage": "https://mohammadthabethassan.github.io/mirage-soc-lab/",
   "bugs": {
     "url": "https://github.com/MohammadThabetHassan/mirage-soc-lab/issues"
   },
@@ -28,7 +28,8 @@
     "test:persistence": "vitest run server/soc/persistence.integration.test.ts",
     "test:browser": "playwright test",
     "check:bundle": "node scripts/check-bundle-budget.mjs",
-    "quality": "pnpm format:check && pnpm test && pnpm check && pnpm build && pnpm check:bundle",
+    "check:showcase": "node scripts/check-showcase.mjs",
+    "quality": "pnpm format:check && pnpm check:showcase && pnpm test && pnpm check && pnpm build && pnpm check:bundle",
     "db:push": "drizzle-kit generate && drizzle-kit migrate"
   },
   "dependencies": {

@@ -26,9 +26,20 @@ Every MIRAGE rule is defined in `server/soc/rules/catalog.json` and validated by
 
 MITRE describes ATT&CK tactics as adversary objectives, techniques as the behaviors used to achieve them, and procedures as concrete implementations. A technique mapping is therefore context for an analytic—not proof that every observed event is malicious. [1]
 
+## Scenario playbooks
+
+Each catalog scenario now contains a `useCase` object with a learning objective, exactly three validation steps, and an expected outcome. The Evaluation workspace renders the same data so an analyst can move from a scenario result to a practical decision path without relying on unversioned training material.
+
+| Scenario             | What it is intended to prove                                                       | Expected outcome                                                         |
+| -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `full-pipeline`      | A rule or parser change preserves the full credential-to-decoy-to-discovery story. | Three expected detections remain present with one source-bound timeline. |
+| `credential-probe`   | A success after failures is inspected with source and timing context.              | Two detections appear; the analyst reviews the stated triage boundary.   |
+| `benign-admin`       | Authorized administration remains outside the current correlation rules.           | No case is created, providing a documented negative control.             |
+| `threshold-boundary` | The repeated-failure rule begins only at its declared threshold.                   | No case is created one event below the configured limit.                 |
+
 ## How to add or revise a rule
 
-Start by defining a narrow lab behavior and its allowed telemetry fields. Specify the ATT&CK rationale only after the behavior is clear. Then state the exact telemetry prerequisites, at least two investigation questions, a disposition boundary, and a benign explanation. Add or update deterministic scenario expectations, then run the catalog, engine, browser, and quality gates.
+Start by defining a narrow lab behavior and its allowed telemetry fields. Specify the ATT&CK rationale only after the behavior is clear. Then state the exact telemetry prerequisites, at least two investigation questions, a disposition boundary, and a benign explanation. Add or update deterministic scenario expectations **and** a practical `useCase` playbook, then run the catalog, engine, browser, showcase, and quality gates.
 
 | Review question                  | Evidence of completion                                                                            |
 | -------------------------------- | ------------------------------------------------------------------------------------------------- |

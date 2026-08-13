@@ -12,9 +12,9 @@
 
 ![MIRAGE signal prism: an amber incident ray resolved into a graphite plane and cyan evidence traces](docs/assets/mirage-signal-prism-logo.png)
 
-_The signal prism is MIRAGE’s compact project mark. The social-preview artwork remains configured separately in GitHub repository settings and does not appear in this README. The public showcase site uses richer visual storytelling without treating illustrative material as telemetry._
+_The signal prism is MIRAGE’s compact project mark. The social-preview artwork remains configured separately in GitHub repository settings and does not appear in this README. The GitHub Pages showcase links every public claim back to a versioned repository source._
 
-> **Public showcase:** explore the [MIRAGE Signal Foundry evidence dossier](https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer) for the project’s controlled scope, ATT&CK-aware detection method, assurance model, and release evidence.
+> **Public showcase:** explore the [MIRAGE practical detection-engineering site](https://mohammadthabethassan.github.io/mirage-soc-lab/) for controlled use cases, ATT&CK-aware detection contracts, and a reproducible validation path.
 
 ## Why MIRAGE
 
@@ -88,46 +88,59 @@ Open the local URL, choose **Sign in to continue**, and complete the configured 
 4. Record an analyst note and disposition, then review the immutable history and integrity-verification status.
 5. Open **Evaluation** to review deterministic scenario metrics. The benign-admin scenario should produce no cases.
 
+## Practical use cases
+
+MIRAGE is designed for controlled practice and validation rather than production monitoring. Each scenario is a versioned playbook with a learning objective, three validation steps, and an expected outcome in the detection catalog. The **Evaluation** workspace surfaces this guidance beside the observed result so an analyst can connect an exercise to a testable decision.
+
+| Exercise              | Practical question                                                                                  | Expected result                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Full pipeline story   | Did a rule or parser change preserve the complete credential-to-decoy-to-discovery detection path?  | All three documented detections appear with source-bound evidence.           |
+| Credential probe      | Does a success after failures deserve review when source continuity and time window are considered? | Two explainable lab detections appear; the triage boundary remains explicit. |
+| Benign admin activity | Does approved administration remain outside the detection boundary?                                 | No case is created; the scenario acts as a negative control.                 |
+| Threshold boundary    | Does the repeated-failure rule start precisely at its configured threshold?                         | No case is created one event below the threshold.                            |
+
 ## Verification and quality gates
 
-| Command                 | Purpose                                                                             |
-| ----------------------- | ----------------------------------------------------------------------------------- |
-| `pnpm format:check`     | Enforces repository formatting.                                                     |
-| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests. |
-| `pnpm check`            | Runs strict TypeScript validation.                                                  |
-| `pnpm build`            | Produces the browser and server production bundles.                                 |
-| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.             |
-| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                |
-| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                |
-| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                     |
-| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.      |
+| Command                 | Purpose                                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `pnpm format:check`     | Enforces repository formatting.                                                                                |
+| `pnpm test`             | Runs server, detection, integrity, authorization, and authenticated workflow tests.                            |
+| `pnpm check`            | Runs strict TypeScript validation.                                                                             |
+| `pnpm build`            | Produces the browser and server production bundles.                                                            |
+| `pnpm test:persistence` | Runs the real-MySQL persistence test when `DATABASE_URL` is configured.                                        |
+| `pnpm test:browser`     | Runs desktop and mobile browser, semantic, and keyboard smoke tests.                                           |
+| `pnpm security:audit`   | Audits production dependencies at the configured severity threshold.                                           |
+| `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                                                |
+| `pnpm check:showcase`   | Verifies required public content, GitHub links, safety statement, and responsive CSS in the static Pages site. |
+| `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.                                 |
 
-The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; results are published to GitHub Code Scanning and retained as SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails.
+The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; results are published to GitHub Code Scanning and retained as SARIF evidence for fourteen days. Browser reports are retained for seven days only when a smoke-test job fails. A separate GitHub Pages workflow validates and deploys only the versioned static showcase after changes to `showcase/` or its deployment contract.
 
 ## Documentation
 
-| Document                                                                          | Purpose                                                                         |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md)                                              | Component boundaries, data flow, trust boundaries, and persistence model.       |
-| [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md)                  | Researched hardening roadmap and assurance target.                              |
-| [Security Assurance Matrix](docs/SECURITY_ASSURANCE_MATRIX.md)                    | ASVS-inspired control coverage, evidence, and residual risks.                   |
-| [Authorization and Abuse Controls](docs/AUTHORIZATION_AND_ABUSE_CONTROLS.md)      | Role policy, rate limits, and distributed-scaling boundary.                     |
-| [Data Governance](docs/DATA_GOVERNANCE.md)                                        | Integrity, migration, and retention procedures.                                 |
-| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)                                  | Health checks, request IDs, incident triage, and release operations.            |
-| [Release Readiness](docs/RELEASE_READINESS.md)                                    | Verified release evidence and documented limitations.                           |
-| [Release Procedure](docs/RELEASE_PROCEDURE.md)                                    | Versioning, migration, deployment, and post-release verification steps.         |
-| [Public Release Checklist](docs/PUBLIC_RELEASE_CHECKLIST.md)                      | Safe visibility-change, social-preview, security, and governance actions.       |
-| [Dependency Security](docs/DEPENDENCY_SECURITY.md)                                | Dependency audit policy and remediation history.                                |
-| [Detection Engineering Guide](docs/DETECTION_ENGINEERING_GUIDE.md)                | Rule contract, ATT&CK context, telemetry prerequisites, and safe triage.        |
-| [Contributing](CONTRIBUTING.md)                                                   | Local development, test, review, and pull-request expectations.                 |
-| [Security Policy](SECURITY.md)                                                    | Vulnerability-reporting route and security expectations.                        |
-| [Citation Metadata](CITATION.cff)                                                 | Standard software citation for training, research, and demonstrations.          |
-| [Visual Assets](docs/assets)                                                      | Compact README brand mark and the separate GitHub social-preview upload file.   |
-| [Public Showcase](https://3000-iaeafv0nq30ay189bp7mb-858e92c5.sg1.manus.computer) | Signal Foundry presentation of MIRAGE’s scope, method, assurance, and evidence. |
+| Document                                                                     | Purpose                                                                       |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                                         | Component boundaries, data flow, trust boundaries, and persistence model.     |
+| [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md)             | Researched hardening roadmap and assurance target.                            |
+| [Security Assurance Matrix](docs/SECURITY_ASSURANCE_MATRIX.md)               | ASVS-inspired control coverage, evidence, and residual risks.                 |
+| [Authorization and Abuse Controls](docs/AUTHORIZATION_AND_ABUSE_CONTROLS.md) | Role policy, rate limits, and distributed-scaling boundary.                   |
+| [Data Governance](docs/DATA_GOVERNANCE.md)                                   | Integrity, migration, and retention procedures.                               |
+| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)                             | Health checks, request IDs, incident triage, and release operations.          |
+| [Release Readiness](docs/RELEASE_READINESS.md)                               | Verified release evidence and documented limitations.                         |
+| [Release Procedure](docs/RELEASE_PROCEDURE.md)                               | Versioning, migration, deployment, and post-release verification steps.       |
+| [Public Release Checklist](docs/PUBLIC_RELEASE_CHECKLIST.md)                 | Safe visibility-change, social-preview, security, and governance actions.     |
+| [Dependency Security](docs/DEPENDENCY_SECURITY.md)                           | Dependency audit policy and remediation history.                              |
+| [Detection Engineering Guide](docs/DETECTION_ENGINEERING_GUIDE.md)           | Rule contract, ATT&CK context, telemetry prerequisites, and safe triage.      |
+| [GitHub Pages Guide](docs/GITHUB_PAGES.md)                                   | Static showcase source, deployment permissions, and verification procedure.   |
+| [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.               |
+| [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                      |
+| [Citation Metadata](CITATION.cff)                                            | Standard software citation for training, research, and demonstrations.        |
+| [Visual Assets](docs/assets)                                                 | Compact README brand mark and the separate GitHub social-preview upload file. |
+| [Public Showcase](https://mohammadthabethassan.github.io/mirage-soc-lab/)    | Practical use cases, detection contracts, and repository-linked evidence.     |
 
 ## Detection and ATT&CK context
 
-The included deterministic rules model repeated authentication failures, success after failure, and a multi-stage decoy/discovery sequence. The evaluation corpus labels known positives, a known benign case, and an edge case. Each rule records technique, tactic, rationale, caveat, and reference links.
+The included deterministic rules model repeated authentication failures, success after failure, and a multi-stage decoy/discovery sequence. The evaluation corpus labels known positives, a known benign case, and an edge case. Each scenario also records its learning objective, validation steps, and expected outcome. Each rule records technique, tactic, rationale, telemetry prerequisites, triage boundary, caveat, and reference links.
 
 - [T1110 — Brute Force](https://attack.mitre.org/techniques/T1110/)
 - [T1078 — Valid Accounts](https://attack.mitre.org/techniques/T1078/)
