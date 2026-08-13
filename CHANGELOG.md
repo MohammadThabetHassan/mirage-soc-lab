@@ -4,15 +4,22 @@ All notable changes to MIRAGE are documented in this file. The project uses a li
 
 ## Unreleased
 
+No unreleased changes are currently recorded.
+
+## [1.0.0] — 2026-08-13
+
 ### Added
 
-- Production-excellence plan, architecture guide, ASVS-inspired assurance matrix, contributor guide, code of conduct, ownership rules, and issue templates.
+- Production-excellence plan, architecture guide, ASVS-inspired assurance matrix, contributor guide, code of conduct, ownership rules, issue templates, explicit MIT license, editor conventions, and Node runtime declaration.
 - Professional release-governance, operational, data-governance, authorization, and dependency-security documentation.
-- Required CI coverage for formatting, unit tests, strict type checking, production build, production dependency audit, and desktop/mobile browser smoke tests.
+- Curated exterior and interior concept artwork for the repository landing page, clearly identified as illustrative controlled-lab visuals.
+- Required CI coverage for formatting, unit tests, strict type checking, production build, bundle budget, production dependency audit, CodeQL, disposable MySQL migrations/persistence, and desktop/mobile browser smoke tests.
+- Failure-only Playwright artifact retention to support safe CI diagnosis.
 
 ### Changed
 
 - GitHub Actions package-manager setup now reads the repository-declared pnpm version and passes all required workflow jobs.
+- The README now provides a complete visual, operational, quality, and release-governance entry point for repository visitors.
 
 ## 0.1.0 — Controlled SOC Lab Baseline
 

@@ -1,6 +1,7 @@
 # MIRAGE SOC Lab
 
 [![Quality and Security](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/quality.yml/badge.svg)](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/quality.yml)
+[![CodeQL](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/codeql.yml/badge.svg)](https://github.com/MohammadThabetHassan/mirage-soc-lab/actions/workflows/codeql.yml)
 [![Node.js 22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Package manager](https://img.shields.io/badge/pnpm-10.4.1-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![Scope](https://img.shields.io/badge/scope-controlled%20SOC%20lab-0EA5E9)](#defensive-scope)
@@ -9,15 +10,25 @@
 
 > **MIRAGE is a controlled-lab application.** It does not scan external systems, test credentials, collect public telemetry, or interact with third-party infrastructure. It is not an autonomous production SOC.
 
+## MIRAGE visual identity
+
+![Exterior concept of the MIRAGE controlled SOC-lab facility](docs/assets/mirage-soc-exterior.webp)
+
+_Exterior concept artwork for MIRAGE’s controlled defensive research environment. This is illustrative only and does not depict a deployed facility._
+
+![Interior concept of the MIRAGE analyst workspace](docs/assets/mirage-soc-interior.webp)
+
+_Interior concept artwork for the analyst workspace. Dashboard visuals are abstract; they do not contain production or third-party telemetry._
+
 ## Why MIRAGE
 
-| Capability                   | What it provides                                                                                                        |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Controlled telemetry         | Deterministic scenario replay and bounded, redacted imports from a private Cowrie lab fixture.                          |
-| Detection-as-code            | Versioned rules, thresholds, scoring rationale, ATT&CK context, and regression scenarios.                               |
-| Explainable analyst workflow | Evidence timelines, risk-factor breakdowns, analyst notes, dispositions, and case histories.                            |
-| Integrity assurance          | Atomic persistence, append-only disposition history, hash-chained evidence lineage, and verification status.            |
-| Repeatable quality           | Formatting, unit tests, strict TypeScript, production build, dependency audit, and desktop/mobile browser smoke checks. |
+| Capability                   | What it provides                                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Controlled telemetry         | Deterministic scenario replay and bounded, redacted imports from a private Cowrie lab fixture.                                                                    |
+| Detection-as-code            | Versioned rules, thresholds, scoring rationale, ATT&CK context, and regression scenarios.                                                                         |
+| Explainable analyst workflow | Evidence timelines, risk-factor breakdowns, analyst notes, dispositions, and case histories.                                                                      |
+| Integrity assurance          | Atomic persistence, append-only disposition history, hash-chained evidence lineage, and verification status.                                                      |
+| Repeatable quality           | Formatting, unit tests, strict TypeScript, production build, bundle budget, MySQL integration, CodeQL, dependency audit, and desktop/mobile browser smoke checks. |
 
 ## System overview
 
@@ -93,7 +104,7 @@ Open the local URL, choose **Sign in to continue**, and complete the configured 
 | `pnpm check:bundle`     | Enforces the production JavaScript bundle budget after a build.                     |
 | `pnpm quality`          | Runs formatting, unit tests, type checks, production build, and bundle budget.      |
 
-The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review.
+The GitHub workflow requires quality, dependency-audit, browser-smoke, and disposable-MySQL migration/persistence jobs for changes pushed to `main` and pull requests targeting `main`. Pull requests also receive a least-privilege dependency review. CodeQL scans TypeScript and GitHub Actions on changes to `main`, pull requests, and a weekly schedule; browser reports are retained for seven days only when a smoke-test job fails.
 
 ## Documentation
 
@@ -110,6 +121,8 @@ The GitHub workflow requires quality, dependency-audit, browser-smoke, and dispo
 | [Dependency Security](docs/DEPENDENCY_SECURITY.md)                           | Dependency audit policy and remediation history.                          |
 | [Contributing](CONTRIBUTING.md)                                              | Local development, test, review, and pull-request expectations.           |
 | [Security Policy](SECURITY.md)                                               | Vulnerability-reporting route and security expectations.                  |
+| [Citation Metadata](CITATION.cff)                                            | Standard software citation for training, research, and demonstrations.    |
+| [Visual Assets](docs/assets)                                                 | Exterior and interior MIRAGE concept artwork for repository presentation. |
 
 ## Detection and ATT&CK context
 
@@ -121,4 +134,4 @@ The included deterministic rules model repeated authentication failures, success
 
 ## Contributing and support
 
-Constructive contributions that preserve MIRAGE’s controlled defensive scope are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow the project’s [Code of Conduct](CODE_OF_CONDUCT.md), and review the security boundary in [SECURITY.md](SECURITY.md). For feature requests, support questions, and roadmap proposals, use the repository issue templates.
+Constructive contributions that preserve MIRAGE’s controlled defensive scope are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow the project’s [Code of Conduct](CODE_OF_CONDUCT.md), and review the security boundary in [SECURITY.md](SECURITY.md). For feature requests, support questions, and roadmap proposals, use the repository issue templates. MIRAGE is available under the [MIT License](LICENSE).
