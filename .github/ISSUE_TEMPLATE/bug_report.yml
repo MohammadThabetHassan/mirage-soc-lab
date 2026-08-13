@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please do not include passwords, session tokens, raw production telemetry, or private infrastructure details. For vulnerabilities, follow SECURITY.md instead.
+        Please do not include passwords, session tokens, raw production telemetry, or private infrastructure details. Report vulnerabilities privately to the repository owner instead of opening a public issue.
   - type: textarea
     id: summary
     attributes:

@@ -1,10 +1,8 @@
-# Default ownership: enable required code-owner review in repository branch protection settings.
+# Default ownership routing for the focused project surface.
 * @MohammadThabetHassan @AbdulrahmanRezki
 
 # Security-sensitive boundaries
 /.github/ @MohammadThabetHassan @AbdulrahmanRezki
-/SECURITY.md @MohammadThabetHassan @AbdulrahmanRezki
-/docs/SECURITY_ASSURANCE_MATRIX.md @MohammadThabetHassan @AbdulrahmanRezki
 /server/_core/ @MohammadThabetHassan @AbdulrahmanRezki
 /server/routers/ @MohammadThabetHassan @AbdulrahmanRezki
 /server/soc/ @MohammadThabetHassan @AbdulrahmanRezki

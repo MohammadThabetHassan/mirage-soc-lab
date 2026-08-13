@@ -1,80 +1,70 @@
 # MIRAGE Architecture
 
-## Purpose and boundary
+MIRAGE is a React and tRPC application built around one idea: a detection should be easy to replay, inspect, and challenge with a control case. It stores controlled scenario output in MySQL so an analyst can follow a case from telemetry to disposition without pretending to be a production SOC.
 
-MIRAGE is an authenticated, controlled SOC-lab application. It is designed to demonstrate explainable detection engineering and analyst decision workflows using deterministic synthetic telemetry and a bounded private-lab Cowrie import path. It is not designed to monitor or act against public infrastructure.
-
-## Logical architecture
+## Main pieces
 
 ```mermaid
-flowchart TB
-  UI[React analyst workspace]
-  API[tRPC protected procedures]
-  Auth[OAuth session context]
-  Engine[Detection and evaluation engine]
-  Catalog[Versioned detection catalog]
-  Cowrie[Controlled Cowrie normalizer]
-  DB[(MySQL-compatible database)]
-  Integrity[Hash-chain integrity verifier]
-
-  UI --> API
-  API --> Auth
-  API --> Engine
-  API --> Cowrie
-  Engine --> Catalog
-  Engine --> DB
-  Cowrie --> DB
-  API --> Integrity
+flowchart LR
+  UI[React workspace] --> API[tRPC router]
+  API --> Auth[OAuth session context]
+  API --> Engine[Deterministic engine]
+  Engine --> Catalog[Versioned rule catalog]
+  API --> Import[Bounded Cowrie normalizer]
+  Engine --> DB[(MySQL)]
+  Import --> DB
+  API --> Integrity[Integrity verifier]
   Integrity --> DB
 ```
 
-## Component responsibilities
+| Part               | What it does                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| React workspace    | Shows scenarios, cases, evaluation output, guided exercises, notes, and integrity status.                          |
+| tRPC router        | Validates input, checks whether the caller is signed in or an administrator, and applies action limits.            |
+| Session layer      | Reads the OAuth session and makes the user and role available to protected procedures.                             |
+| Catalog and engine | Validate the versioned rule catalog and run deterministic correlation logic against controlled events.             |
+| Cowrie normalizer  | Accepts only the allowlisted private-lab event subset and strips unsupported or sensitive fields before storage.   |
+| MySQL layer        | Stores scenarios, events, cases, notes, dispositions, and evidence lineage in transactions.                        |
+| Integrity verifier | Recomputes the case evidence and disposition hash chains to show whether stored application history still matches. |
 
-| Component                    | Responsibility                                                                                        | Security and reliability boundary                                                                                                               |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| React workspace              | Renders cases, evaluation evidence, analyst notes, and integrity status.                              | Does not make authorization decisions; uses protected server procedures.                                                                        |
-| tRPC router                  | Validates inputs, enforces authenticated or administrator-only operations, and applies action limits. | Rejects unauthorized, malformed, or oversized requests before persistence.                                                                      |
-| Authentication context       | Supplies the authenticated user and role to protected procedures.                                     | The OAuth provider and session configuration are deployment prerequisites.                                                                      |
-| Cowrie normalizer            | Maps an allowlisted controlled event subset into normalized lab events.                               | Drops raw records and prohibited/sensitive fields; accepts controlled source ranges only.                                                       |
-| Detection catalog and engine | Produces deterministic findings from scenario data and catalog-defined thresholds.                    | Catalog schema validation protects against incomplete or malformed rule changes.                                                                |
-| Persistence layer            | Stores scenarios, events, cases, notes, disposition history, and lineage records.                     | Atomic writes protect scenario and disposition consistency; schema indexes and uniqueness constraints protect query and relationship integrity. |
-| Integrity verifier           | Recomputes evidence and disposition hash chains.                                                      | Detects inconsistency in stored application chains; does not replace external evidence signing or anchoring.                                    |
-| Observability middleware     | Emits request metadata with a request ID and exposes health endpoints.                                | Logs exclude request bodies, cookies, authorization headers, and query values.                                                                  |
+## What happens during a replay
 
-## Trust boundaries
+1. A signed-in analyst chooses a fixed scenario. An administrator can also submit a bounded Cowrie JSON-lines payload from a private lab.
+2. The API validates the request and applies the action limit for that operation.
+3. The engine reads the catalog and creates only the cases the scenario is expected to produce.
+4. The application stores scenario output, evidence links, and case state together.
+5. A later note or disposition appends an entry to the case history. The current case view and the append-only history are updated together.
+6. The workspace can ask the verifier to recompute the stored chains.
 
-| Boundary                           | Trusted inputs                                                     | Rejected or constrained inputs                                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Browser to API                     | Authenticated session and validated procedure inputs.              | Anonymous access to SOC data; uncontrolled payload sizes; unvalidated procedure inputs.                              |
-| Analyst to Cowrie import           | Administrator identity and bounded JSON-lines payload.             | Public-source records, unsupported event IDs, raw password/TTY/file-transfer content, and direct network collection. |
-| Detection engine to database       | Catalog-validated deterministic scenario output.                   | Runtime execution of user-supplied detection logic.                                                                  |
-| Application to deployment services | Injected database and OAuth configuration.                         | Missing required production configuration, secrets committed to source, or unreviewed environment drift.             |
-| CI to repository                   | Read-only workflow permissions unless a job explicitly needs more. | Privileged untrusted pull-request execution and unreviewed dependency changes.                                       |
+The engine never evaluates uploaded rule code. Rule behavior comes from the checked-in catalog and deterministic implementation.
 
-## Primary data flow
+## Boundaries that matter
 
-1. An authenticated analyst selects a deterministic scenario, or an administrator submits a redacted controlled-lab Cowrie payload.
-2. The API validates the request, checks the action policy, and normalizes allowed data.
-3. The detection engine applies the versioned catalog to produce explainable cases and evidence references.
-4. The persistence layer stores scenario output and lineage together in a transaction.
-5. An analyst records a disposition and note; the application appends a hashed history entry and updates the current-state projection atomically.
-6. The workspace retrieves the case detail and recomputes integrity state through a protected verification procedure.
+MIRAGE trusts the application’s OAuth configuration, its database connection, and its checked-in catalog. It does not trust browser input, raw fixture input, or a rule match by itself.
 
-## Persistence model
+The server validates tRPC input with Zod, limits JSON bodies to 2 MB, and keeps request logs to metadata such as request ID, route, method, status, and duration. It does not log request bodies, cookies, authorization headers, or query values. `/healthz` says that the process is running; `/readyz` also reports whether the configured database is reachable.
 
-| Record                     | Retention role                           | Integrity control                                                          |
-| -------------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
-| `scenario_runs`            | Reproducible evaluation and demo history | Linked to deterministic scenario metadata.                                 |
-| `soc_events`               | Normalized controlled telemetry          | Source boundary and field-level redaction precede persistence.             |
-| `soc_cases`                | Current case projection                  | Rule version and evidence data are retained for explanation.               |
-| `case_notes`               | Analyst-facing note projection           | Created atomically with disposition history.                               |
-| `case_disposition_history` | Append-only analyst decision record      | Per-case hash chaining and uniqueness of entry hashes.                     |
-| `case_evidence_lineage`    | Append-only case-to-event lineage        | Per-case hash chaining and uniqueness per event/rule/version relationship. |
+The Cowrie import is intentionally narrow. It is for recorded private-lab telemetry, not public collection. Unsupported event types, raw TTY content, file-transfer content, and fields outside the allowlist are not part of the normalized event model.
 
-## Deployment assumptions
+Rate limits are process-local sliding windows. They protect the single-instance lab but are not a claim of distributed rate limiting. A horizontally scaled deployment would need a shared limiter.
 
-MIRAGE requires Node.js 22+, pnpm, a MySQL-compatible database, and a compatible OAuth provider. Production environments should use managed secret injection, encrypted database storage and backup procedures, HTTPS termination, externally monitored health checks, and a shared rate-limit backend if horizontally scaled.
+## Stored records
 
-## Non-goals
+| Record                     | Why it exists                                                                                |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| `scenario_runs`            | Reproducible replay and evaluation history.                                                  |
+| `soc_events`               | Normalized controlled telemetry.                                                             |
+| `soc_cases`                | The current analyst-facing case view, including rule and evidence context.                   |
+| `case_notes`               | The current analyst note projection.                                                         |
+| `case_disposition_history` | Append-only disposition entries protected by a per-case hash chain.                          |
+| `case_evidence_lineage`    | Append-only links from a case to its source events, also protected by a per-case hash chain. |
 
-MIRAGE intentionally does not provide public honeypot deployment, credential testing, target scanning, exploit execution, automated containment, SIEM-scale ingest, or external threat-response actions.
+Migrations live in `drizzle/`. Treat them as forward changes: review the generated SQL, run it against a disposable database, and write a compensating migration if a later correction is needed.
+
+## Running and shipping
+
+The server needs Node.js 22+, pnpm, MySQL, and OAuth settings for a full deployment. Production startup rejects missing or malformed database, OAuth, application ID, owner, and cookie-secret configuration.
+
+The repository’s CI has four practical jobs: the normal quality command, production dependency audit, browser smoke tests, and a disposable-MySQL migration/persistence test. CodeQL scans the source and workflow files. The public project page is a separate static artifact in `showcase/`; its workflow checks the source first, then publishes it to GitHub Pages.
+
+MIRAGE does not provide scanning, credential testing, exploit execution, public honeypot deployment, external telemetry collection, automated containment, or SIEM-scale ingest. Those are outside this project’s purpose.

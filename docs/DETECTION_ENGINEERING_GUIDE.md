@@ -1,74 +1,57 @@
 # Detection Engineering Guide
 
-MIRAGE treats each detection as a versioned, testable statement about a **controlled lab observation**. The goal is not to color an ATT&CK matrix; it is to make the detection logic, required evidence, expected benign behavior, and evaluation result inspectable by an analyst or contributor.
+MIRAGE rules are small, versioned statements about **controlled lab observations**. A rule is useful only when a reader can see what telemetry it needs, why it fired, what should stay quiet, and where its conclusion stops.
 
-> **Controlled-scope reminder.** The catalog models only safe synthetic telemetry and an optional private Cowrie lab fixture. It is not a source of production threat intelligence, a scanner, or an instruction set for external collection.
+> The catalog uses synthetic telemetry and an optional bounded Cowrie fixture. It is not production threat intelligence, a scanner, or a way to collect data from outside the lab.
 
-## Detection contract
+## A rule is more than a match
 
-Every MIRAGE rule is defined in `server/soc/rules/catalog.json` and validated by Zod before use. A contribution is complete only when its catalog record, deterministic scenario, regression expectation, and analyst-facing context agree.
+Every rule lives in `server/soc/rules/catalog.json` and is checked by the catalog schema before use. A rule change is incomplete unless the catalog, scenario, engine expectation, analyst context, and regression tests agree.
 
-| Contract element                  | Purpose                                                                                          | Analyst benefit                                                                           |
-| --------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| Rule summary and threshold        | States the bounded behavior the lab detects.                                                     | Makes the alert condition understandable without reverse-engineering implementation code. |
-| ATT&CK mapping                    | Records the tactic, technique, reference, and rationale.                                         | Connects a behavior to a shared defensive vocabulary.                                     |
-| Telemetry prerequisites           | States which normalized fields are necessary and why.                                            | Makes missing-observability limits visible before a disposition is made.                  |
-| Benign caveat and triage boundary | States plausible benign explanations and the evidence required to cross the rule’s lab boundary. | Reduces the risk of treating a rule match as a verdict.                                   |
-| Scenario-backed evaluation        | Links the rule to deterministic positive, benign, and edge-case exercises.                       | Provides a reproducible validation trail.                                                 |
+| Catalog field                        | Why it is there                                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Summary and threshold                | States the exact behavior and boundary being modeled.                                    |
+| ATT&CK context                       | Gives an analyst a shared vocabulary for the modeled behavior; it does not prove intent. |
+| Telemetry requirements               | Names the normalized fields the analytic needs and why.                                  |
+| Triage guidance and caveat           | Explains what to inspect and why a match is not a verdict.                               |
+| Strategy and analytic version        | Separates the defensive question from the current implementation.                        |
+| Positive, benign, and edge scenarios | Makes the expected result repeatable and gives the rule a real boundary.                 |
 
-## Current controlled coverage
+## Current rules
 
-| Rule                     | ATT&CK context                          | Minimum lab evidence                                                                                  | Evaluation intent                                                                                  |
-| ------------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `repeated-auth-failures` | T1110 — Brute Force, Credential Access  | A bounded failure burst from one source, correlated by time.                                          | Detect the known positive without creating a case for benign admin access.                         |
-| `success-after-failure`  | T1078 — Valid Accounts, Defense Evasion | A source-bound sequence of failures followed by a success inside the correlation window.              | Show why a later success deserves context but is not automatically malicious.                      |
-| `multi-stage-sequence`   | T1087 — Account Discovery, Discovery    | Credential activity, controlled decoy engagement, and allowlisted discovery evidence from one source. | Require every stage of the critical synthetic story; isolated inventory activity must not qualify. |
+| Rule                              | Controlled evidence                                                                | What the control cases prove                                               |
+| --------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `repeated-auth-failures`          | A source-bound failure burst in the configured window.                             | Benign admin activity and one fewer failure stay quiet.                    |
+| `success-after-failure`           | Failures followed by a later success from the same source.                         | The alert asks for context; it does not label every success malicious.     |
+| `multi-stage-sequence`            | Credential activity, decoy interaction, and allowlisted discovery from one source. | An isolated inventory action is not enough.                                |
+| `low-and-slow-auth-pressure`      | Failures that meet the separate count, time-span, and correlation-window contract. | Scheduled retries and a just-below boundary stay quiet.                    |
+| `unapproved-access-policy-change` | A source-bound login followed by an unapproved **synthetic** change marker.        | An approved change or a change without matching login context stays quiet. |
 
-MITRE describes ATT&CK tactics as adversary objectives, techniques as the behaviors used to achieve them, and procedures as concrete implementations. A technique mapping is therefore context for an analytic—not proof that every observed event is malicious. [1]
+The policy-change rule does not inspect or alter real access policies. It exists only to practice a narrow context-correlation decision in the lab.
 
-## Scenario playbooks
+## Scenario catalog
 
-Each catalog scenario now contains a `useCase` object with a learning objective, exactly three validation steps, and an expected outcome. The Evaluation workspace renders the same data so an analyst can move from a scenario result to a practical decision path without relying on unversioned training material.
+The catalog contains a learning objective, three validation steps, and an expected outcome for every scenario. The Evaluation page reads that same source; there is no separate training spreadsheet to get out of date.
 
-| Scenario             | What it is intended to prove                                                       | Expected outcome                                                         |
-| -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `full-pipeline`      | A rule or parser change preserves the full credential-to-decoy-to-discovery story. | Three expected detections remain present with one source-bound timeline. |
-| `credential-probe`   | A success after failures is inspected with source and timing context.              | Two detections appear; the analyst reviews the stated triage boundary.   |
-| `benign-admin`       | Authorized administration remains outside the current correlation rules.           | No case is created, providing a documented negative control.             |
-| `threshold-boundary` | The repeated-failure rule begins only at its declared threshold.                   | No case is created one event below the configured limit.                 |
+| Scenario group         | Positive examples                   | Control examples                                         |
+| ---------------------- | ----------------------------------- | -------------------------------------------------------- |
+| Authentication context | `full-pipeline`, `credential-probe` | `benign-admin`, `threshold-boundary`                     |
+| Sustained pressure     | `low-and-slow-pressure`             | `scheduled-service-retries`, `low-and-slow-boundary`     |
+| Change context         | `unapproved-policy-change`          | `authorized-policy-change`, `policy-change-without-auth` |
 
-## v1.2 strategy, analytic, and control contract
+The release baseline in `server/soc/evaluation-baseline.json` records the catalog version and expected outcomes. Its test fails when a rule, scenario, or control changes without an intentional baseline update.
 
-MIRAGE v1.2 separates a **strategy**—the defensive question—from an **analytic**—the deterministic implementation that answers it in controlled telemetry. Each rule now declares a stable strategy identifier, an analytic semantic version, a `new` or `revised` change class, and an evaluation contract that names the required positive, benign, and edge scenarios. This mirrors the distinction in ATT&CK between a high-level detection strategy and its platform-specific analytics. [1]
+## How to change a rule
 
-| Rule                              | Strategy                     | Analytic | Positive contract                   | Control contract                                    |
-| --------------------------------- | ---------------------------- | -------- | ----------------------------------- | --------------------------------------------------- |
-| `repeated-auth-failures`          | `STRAT-AUTH-PRESSURE`        | `1.2.0`  | Full pipeline and credential probe. | Benign admin and rapid threshold boundary.          |
-| `success-after-failure`           | `STRAT-POST-AUTH-CONTEXT`    | `1.2.0`  | Full pipeline and credential probe. | Benign admin and rapid threshold boundary.          |
-| `multi-stage-sequence`            | `STRAT-SEQUENCE-CORRELATION` | `1.2.0`  | Full pipeline.                      | Benign admin and rapid threshold boundary.          |
-| `low-and-slow-auth-pressure`      | `STRAT-AUTH-PRESSURE`        | `1.0.0`  | Sustained pressure.                 | Scheduled retries and sustained threshold boundary. |
-| `unapproved-access-policy-change` | `STRAT-CHANGE-CONTEXT`       | `1.0.0`  | Unapproved synthetic policy change. | Authorized change and change without login context. |
+Start with one narrow lab behavior. State the needed normalized fields, the threshold or correlation window, a plausible benign explanation, and the point at which an analyst should stop short of a conclusion. Then add or update:
 
-The low-and-slow and policy-change scenarios are fully synthetic. They neither generate traffic nor inspect a real access policy. A change to a rule must update its analytic version when behavior, telemetry, threshold, or triage boundary changes, revise its control scenarios when the boundary moves, and provide an evaluation result before release.
+1. The catalog entry, including strategy, analytic version, change class, ATT&CK context, telemetry requirements, triage guidance, and evaluation contract.
+2. A positive scenario and at least one benign or edge control.
+3. Engine and catalog regression tests, plus the baseline when behavior is intentionally changed.
+4. The analyst-facing wording and the public showcase when a user-visible claim changes.
 
-## How to add or revise a rule
+Run `pnpm quality`, `pnpm test:browser`, `pnpm security:audit`, and the database migration check when relevant. A rule is ready only when the behavior and its controls are visible in both code and tests.
 
-Start by defining a narrow lab behavior and its allowed telemetry fields. Specify the ATT&CK rationale only after the behavior is clear. Then state the exact telemetry prerequisites, at least two investigation questions, a disposition boundary, and a benign explanation. Add or update the strategy, analytic version, change class, evaluation contract, deterministic scenario expectations, and practical `useCase` playbook, then run the catalog, engine, browser, showcase, migration, and quality gates.
+## Using ATT&CK here
 
-| Review question                  | Evidence of completion                                                                            |
-| -------------------------------- | ------------------------------------------------------------------------------------------------- |
-| What behavior is being detected? | A specific catalog summary, threshold, and correlation window.                                    |
-| What must be observable?         | `telemetryRequirements` naming normalized fields and their purposes.                              |
-| How does an analyst inspect it?  | Triage questions, caveat, and disposition boundary displayed in the case context.                 |
-| What prevents coverage theatre?  | A positive scenario, benign or edge scenario, and a deterministic test result.                    |
-| What keeps the lab safe?         | No external collection, no raw TTY persistence, no credential testing, and no broader input path. |
-
-## Practical interpretation
-
-ATT&CK recommends that defenders prioritize behaviors relevant to their environment and avoid declaring coverage from one implementation of a technique. MIRAGE follows this by treating the matrix as a traceability aid and keeping current coverage intentionally small, explicit, and scenario-backed. [1] The legacy ATT&CK data-source inventory remains useful as a vocabulary for discussing sensor requirements, but MITRE notes that the taxonomy is no longer being extended; MIRAGE therefore records **lab telemetry prerequisites** instead of claiming exhaustive data-source coverage. [2]
-
-## References
-
-[1] [MITRE ATT&CK: Resources](https://attack.mitre.org/resources/)
-
-[2] [MITRE ATT&CK: Data Sources](https://attack.mitre.org/datasources/)
+ATT&CK helps describe the behavior an analytic is meant to model. MIRAGE uses the mapping as context for a lab exercise, not as a claim of broad coverage or a real-world attribution. Keep mappings specific, explain the rationale in the catalog, and avoid inflating the matrix with rules that lack scenarios and controls.

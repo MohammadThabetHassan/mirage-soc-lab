@@ -1,58 +1,60 @@
 # Contributing to MIRAGE
 
-Thank you for helping improve MIRAGE. Contributions must preserve the project’s controlled, defensive SOC-lab scope and keep every behavior explainable, testable, and safe for authorized environments.
-
-## Before you begin
-
-Please read the [Architecture](docs/ARCHITECTURE.md), [Security Policy](SECURITY.md), [Code of Conduct](CODE_OF_CONDUCT.md), and [Production Excellence Plan](docs/PRODUCTION_EXCELLENCE_PLAN.md). Security vulnerabilities should be reported privately through the process in `SECURITY.md`, not opened as public issues.
+MIRAGE is a controlled detection-engineering lab. A good contribution makes a small behavior easier to test, understand, or practice. It does not turn the project into a scanner, credential-testing tool, exploit framework, public honeypot, or production SOC.
 
 ## Local setup
 
-Install Node.js 22+, pnpm 10.4.1, a MySQL-compatible database, and a compatible OAuth configuration. Copy only your own private development values into an uncommitted `.env` file.
+Use Node.js 22+ and pnpm 10. For a full application run, configure a MySQL-compatible database and OAuth values in your own uncommitted `.env` file.
 
 ```bash
 pnpm install
-pnpm db:push
 pnpm dev
 ```
 
-## Engineering expectations
+For schema work, inspect the generated migration before applying it:
 
-| Area                | Requirement                                                                                                       |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Scope               | Do not add scanning, credential attacks, exploit execution, public honeypot exposure, or third-party targeting.   |
-| Input handling      | Validate all server inputs, bound payload sizes, and avoid persisting raw sensitive telemetry.                    |
-| Authorization       | Use the least-privileged procedure appropriate to the action and test both allowed and denied behavior.           |
-| Detection changes   | Update the versioned catalog, scenario corpus, ATT&CK context, and regression tests together.                     |
-| Persistence changes | Add a reviewed migration, preserve atomic writes, and update the data-governance documentation.                   |
-| User experience     | Preserve semantic controls, accessible labels, responsive behavior, and clear analyst-facing error messages.      |
-| Documentation       | Update the README, architecture, operational notes, and release documentation when behavior or boundaries change. |
+```bash
+pnpm db:push
+```
 
-## Verification
+## Before changing code
 
-Run the appropriate checks before opening a pull request.
+Read [Architecture](docs/ARCHITECTURE.md) for the application flow. Read the [Detection Engineering Guide](docs/DETECTION_ENGINEERING_GUIDE.md) before touching the catalog, scenarios, engine expectations, evaluation baseline, or exercises.
+
+Keep server input validated, use the existing protected or admin procedures, and keep controlled telemetry redacted and bounded. If a change affects a rule, update its positive and control scenarios at the same time. If it affects stored data, include a forward migration and test it against MySQL.
+
+## Checks
+
+Run these before committing:
 
 ```bash
 pnpm format:check
 pnpm test
 pnpm check
 pnpm build
+pnpm check:bundle
+pnpm check:showcase
 pnpm test:browser
 pnpm security:audit
 ```
 
-`pnpm quality` runs formatting, unit tests, type checking, and production build together. The repository CI repeats the required checks on `main` and pull requests.
+`pnpm quality` runs the first six checks that make up the normal source-quality gate. The MySQL persistence test runs in CI with a disposable database and can be run locally when `DATABASE_URL` is available.
 
-## Pull-request checklist
+## Commit and review model
 
-- [ ] The change is consistent with MIRAGE’s controlled defensive scope.
-- [ ] Inputs, authorization, and errors are validated and covered by tests.
-- [ ] New detection behavior has deterministic scenarios and explainable evidence.
-- [ ] Database changes include reviewed migration and rollback or compensating-migration notes.
-- [ ] Documentation and changelog entries are updated when user-visible behavior changes.
-- [ ] Formatting, tests, type checks, build, browser checks, and dependency audit pass locally.
-- [ ] No secrets, raw sensitive telemetry, generated artifacts, or unrelated formatting changes are included.
+This repository currently uses direct, verified commits on `main`. Keep each commit focused: source and tests together, then documentation or release notes when they describe separate work. Do not push a change that has not passed the checks it affects.
 
-## Commit and review guidance
+Use clear subjects such as `feat:`, `fix:`, `test:`, `docs:`, or `refactor:`. Do not add unrelated formatting, generated artifacts, secrets, raw lab captures, or fake user feedback.
 
-Use concise conventional-style commit subjects such as `feat(soc):`, `fix(ci):`, `test(engine):`, `docs:`, or `refactor(ui):`. Keep commits focused and explain the operational or security impact in the message body. Reviewers should favor testable controls and documented tradeoffs over broad, unverifiable claims.
+When working with another authorized maintainer identity, use only the name and email the repository owner has provided. Split real implementation and documentation work naturally; do not manufacture empty commits for attribution.
+
+## What to update with a feature
+
+| Change              | Update with it                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| Rule or scenario    | Catalog, deterministic test, control case, evaluation baseline, and analyst text.      |
+| Database schema     | Forward migration, persistence test, and any affected types.                           |
+| Public project page | `showcase/`, its static check, and any README claim that changed.                      |
+| Exercise            | Deterministic server test, protected route behavior, and the non-persistence boundary. |
+
+Before a release, confirm the working tree is clean, hosted checks are green for the pushed commit, GitHub Pages is live if it changed, and the release tag points to that verified commit.
