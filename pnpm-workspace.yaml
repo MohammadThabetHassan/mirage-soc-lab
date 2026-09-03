@@ -8,6 +8,12 @@ overrides:
   picomatch: 4.0.5
   "@babel/core": 7.29.7
   esbuild: 0.28.2
+  # Security advisories reachable only through transitive dependencies.
+  # Dependabot security updates cover direct dependencies only, so these
+  # are pinned here instead. Drop an entry once every parent requires the
+  # patched version on its own.
+  qs: 6.16.0
+  browserslist: 4.28.7
 
 onlyBuiltDependencies:
   - esbuild
